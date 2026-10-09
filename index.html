@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jane Bot — Trading Signals</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050b16;
+      --panel: #0b1728;
+      --line: #183651;
+      --blue: #287cff;
+      --cyan: #21e0d0;
+      --text: #edf7ff;
+      --muted: #9bb0c8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+    main { max-width: 760px; margin: auto; padding: 22px; }
+    header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+    .logo {
+      display: grid; place-items: center;
+      width: 46px; height: 46px; border-radius: 14px;
+      background: #102c4b; color: var(--cyan); font-size: 23px;
+    }
+    h1 { font-size: 23px; margin: 0; }
+    .subtitle, .muted { color: var(--muted); font-size: 13px; }
+    .status, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      padding: 17px;
+      margin-bottom: 16px;
+    }
+    .status { border-left: 4px solid #f0b44b; }
+    .status strong { display: block; margin-bottom: 6px; }
+    .modes { display: flex; gap: 8px; margin: 14px 0; }
+    button, select, input {
+      font: inherit; border-radius: 10px; padding: 12px;
+      border: 1px solid var(--line);
+      background: #081222; color: var(--text); width: 100%;
+    }
+    .modes button { cursor: pointer; }
+    .modes button.active { background: #1748a0; border-color: var(--blue); }
+    label { display: block; font-size: 13px; color: var(--muted); margin: 13px 0 7px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .units { display: flex; gap: 8px; }
+    .units input { min-width: 0; }
+    .units select { width: 120px; }
+    .primary {
+      margin-top: 18px; background: #164fae;
+      border-color: #277bff; font-weight: bold;
+    }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    h2 { font-size: 17px; margin: 0 0 12px; }
+    #message { line-height: 1.5; font-size: 14px; }
+    footer { color: var(--muted); font-size: 12px; line-height: 1.6; padding: 8px 2px; }
+    @media (max-width: 480px) {
+      main { padding: 14px; }
+      .field-row { grid-template-columns: 1fr; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo">◈</div>
+    <div>
+      <h1>JANE BOT</h1>
+      <div class="subtitle">Trading Signals · Análisis de mercado</div>
+    </div>
+  </header>
+
+  <section class="status" aria-live="polite">
+    <strong>Datos del mercado: aún no conectados</strong>
+    <span class="muted">No se mostrarán precios ni señales hasta verificar una fuente de datos real.</span>
+  </section>
+
+  <section class="panel">
+    <h2>Configura tu análisis</h2>
+
+    <div class="modes">
+      <button type="button" class="active" data-mode="binarias">Opciones binarias</button>
+      <button type="button" data-mode="forex">Forex</button>
+    </div>
+
+    <label for="asset">Mercado / activo</label>
+    <select id="asset">
+      <option value="EUR/USD">EUR/USD</option>
+      <option value="GBP/USD">GBP/USD</option>
+      <option value="USD/JPY">USD/JPY</option>
+      <option value="GBP/JPY">GBP/JPY</option>
+      <option value="AUD/USD">AUD/USD</option>
+      <option value="USD/CAD">USD/CAD</option>
+      <option value="EUR/JPY">EUR/JPY</option>
+      <option value="EUR/GBP">EUR/GBP</option>
+      <option value="NZD/USD">NZD/USD</option>
+    </select>
+
+    <div class="field-row">
+      <div>
+        <label for="timeframe">Temporalidad del gráfico</label>
+        <div class="units">
+          <input id="timeframe" type="number" min="1" value="1">
+          <select id="timeframeUnit">
+            <option value="minutes">Minutos</option>
+            <option value="seconds">Segundos</option>
+          </select>
+        </div>
+      </div>
+      <div id="expiryField">
+        <label for="expiry">Vencimiento de la operación</label>
+        <div class="units">
+          <input id="expiry" type="number" min="1" value="1">
+          <select id="expiryUnit">
+            <option value="minutes">Minutos</option>
+            <option value="seconds">Segundos</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <label for="language">Idioma / Language</label>
+    <select id="language">
+      <option value="es">Español</option>
+      <option value="en">English</option>
+      <option value="fr">Français</option>
+      <option value="pt">Português</option>
+      <option value="de">Deutsch</option>
+      <option value="it">Italiano</option>
+      <option value="ar">العربية</option>
+      <option value="ru">Русский</option>
+      <option value="zh">中文</option>
+      <option value="ja">日本語</option>
+      <option value="ko">한국어</option>
+      <option value="tr">Türkçe</option>
+      <option value="hi">हिन्दी</option>
+    </select>
+
+    <button class="primary" id="generate" disabled>Generar señal</button>
+  </section>
+
+  <section class="panel">
+    <h2>Estado del sistema</h2>
+    <div id="message" aria-live="polite">
+      Jane Bot está preparada para configurar el análisis. Falta conectar y comprobar los datos reales del mercado.
+    </div>
+  </section>
+
+  <footer>
+    Jane Bot no garantiza ganancias. Una señal solo se habilitará cuando haya datos válidos y una estrategia de análisis implementada y comprobada. No introduzcas aquí contraseñas ni credenciales de tu cuenta de trading.
+  </footer>
+</main>
+
+<script>
+  const modeButtons = document.querySelectorAll("[data-mode]");
+  const expiryField = document.getElementById("expiryField");
+  const message = document.getElementById("message");
+  let mode = "binarias";
+
+  modeButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      mode = button.dataset.mode;
+      modeButtons.forEach(item =>
+        item.classList.toggle("active", item === button)
+      );
+      expiryField.hidden = mode === "forex";
+      message.textContent = mode === "forex"
+        ? "Modo Forex seleccionado. Falta conectar datos reales y validar la estrategia antes de generar señales."
+        : "Modo de opciones binarias seleccionado. Falta conectar datos reales y validar la estrategia antes de generar señales.";
+    });
+  });
+
+  document.getElementById("generate").addEventListener("click", () => {
+    message.textContent =
+      "La generación de señales sigue bloqueada hasta que se conecte y verifique la fuente de datos reales.";
+  });
+</script>
+</body>
+</html>

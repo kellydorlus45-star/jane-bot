@@ -1,119 +1,192 @@
-<!DOCTYPE html>
 
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jane Bot — Trading Signals</title>
+  <title>Jane Bot — Trading</title>
   <script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0b1020;
-      --panel: #121a2b;
-      --border: #26334b;
-      --text: #edf3ff;
-      --muted: #91a0ba;
+      --bg: #090d17;
+      --panel: #121a29;
+      --border: #29344a;
+      --text: #f1f5ff;
+      --muted: #9ba9c1;
+      --gold: #e6c46a;
       --green: #20d6a0;
       --red: #ff617c;
-      --blue: #7198ff;
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       background: var(--bg);
       color: var(--text);
       font-family: Arial, sans-serif;
     }
+
     header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding: 18px 5%;
-      border-bottom: 1px solid var(--border);
-    }
-    .brand { font-size: 23px; font-weight: 800; }
-    .brand span { color: var(--green); }
-    .status { color: var(--muted); font-size: 12px; }
-    main { max-width: 1250px; margin: auto; padding: 22px; }
-    .toolbar, .stats, .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-    }
-    .toolbar {
-      padding: 15px;
-      display: flex;
+      justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
+      padding: 20px 5%;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .brand span { color: var(--gold); }
+
+    #connection {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1250px;
+      margin: auto;
+      padding: 22px;
+    }
+
+    .toolbar, .panel, .stat {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
       align-items: end;
+      gap: 12px;
+      padding: 16px;
       margin-bottom: 16px;
     }
-    .field { flex: 1; min-width: 145px; }
+
+    .field {
+      flex: 1;
+      min-width: 145px;
+    }
+
     label {
       display: block;
+      margin-bottom: 8px;
       color: var(--muted);
       font-size: 12px;
-      margin-bottom: 7px;
     }
+
     select, button {
       width: 100%;
       padding: 12px;
-      border-radius: 9px;
+      border-radius: 8px;
       border: 1px solid var(--border);
-      background: #0d1424;
+      background: #0b1220;
       color: var(--text);
       font-size: 14px;
     }
+
     button {
-      background: var(--green);
-      color: #061b16;
-      border: 0;
+      background: var(--gold);
+      color: #17130a;
+      border: none;
       font-weight: 800;
       cursor: pointer;
     }
-    button:disabled { opacity: .6; cursor: wait; }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
     .stats {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1px;
-      overflow: hidden;
+      gap: 12px;
       margin-bottom: 16px;
     }
-    .stat { padding: 16px; background: var(--panel); min-width: 0; }
-    .stat small { color: var(--muted); display: block; margin-bottom: 8px; }
-    .stat strong { font-size: 18px; overflow-wrap: anywhere; }
+
+    .stat { padding: 16px; min-width: 0; }
+
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-size: 11px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 18px;
+      overflow-wrap: anywhere;
+    }
+
+    .gold { color: var(--gold); }
+    .green { color: var(--green); }
+
     .panel { padding: 16px; }
+
     .panel-heading {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
       flex-wrap: wrap;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
+
     h2 { font-size: 16px; margin: 0; }
-    #chart { width: 100%; height: 430px; }
-    #message { color: var(--muted); font-size: 13px; margin-top: 12px; }
-    .note { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 15px; }
-    .green { color: var(--green); }
+
+    .timezone {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    #chart {
+      width: 100%;
+      height: 430px;
+    }
+
+    #message {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+      margin-top: 18px;
+    }
+
     @media (max-width: 600px) {
       main { padding: 12px; }
-      header { padding: 15px; }
+      header { padding: 16px; }
       .stats { grid-template-columns: 1fr; }
       #chart { height: 340px; }
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="brand">JANE <span>BOT</span></div>
-    <div class="status" id="connection">● Comprobando conexión...</div>
+    <div id="connection">● Comprobando conexión...</div>
   </header>
 
   <main>
-    <div class="toolbar">
+    <section class="toolbar">
       <div class="field">
         <label for="symbol">PAR DE DIVISAS</label>
         <select id="symbol">
@@ -140,62 +213,64 @@
         </select>
       </div>
 
-```
-  <div class="field">
-    <label for="interval">TEMPORALIDAD</label>
-    <select id="interval">
-      <option value="1min">1 minuto</option>
-      <option value="5min">5 minutos</option>
-      <option value="15min">15 minutos</option>
-      <option value="30min">30 minutos</option>
-      <option value="45min">45 minutos</option>
-      <option value="1h">1 hora</option>
-      <option value="2h">2 horas</option>
-      <option value="4h">4 horas</option>
-      <option value="8h">8 horas</option>
-      <option value="1day">1 día</option>
-      <option value="1week">1 semana</option>
-      <option value="1month">1 mes</option>
-    </select>
-  </div>
+      <div class="field">
+        <label for="interval">TEMPORALIDAD DE LAS VELAS</label>
+        <select id="interval">
+          <option value="1min">1 minuto</option>
+          <option value="5min">5 minutos</option>
+          <option value="15min">15 minutos</option>
+          <option value="30min">30 minutos</option>
+          <option value="45min">45 minutos</option>
+          <option value="1h">1 hora</option>
+          <option value="2h">2 horas</option>
+          <option value="4h">4 horas</option>
+          <option value="8h">8 horas</option>
+          <option value="1day">1 día</option>
+          <option value="1week">1 semana</option>
+          <option value="1month">1 mes</option>
+        </select>
+      </div>
 
-  <div class="field">
-    <label>&nbsp;</label>
-    <button id="refresh">Actualizar gráfico</button>
-  </div>
-</div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <button id="refresh">Actualizar gráfico</button>
+      </div>
+    </section>
 
-<section class="stats">
-  <div class="stat">
-    <small>ÚLTIMO CIERRE RECIBIDO</small>
-    <strong id="price">—</strong>
-  </div>
-  <div class="stat">
-    <small>ÚLTIMA VELA</small>
-    <strong id="lastTime">—</strong>
-  </div>
-  <div class="stat">
-    <small>FUENTE DE DATOS</small>
-    <strong class="green">Twelve Data</strong>
-  </div>
-</section>
+    <section class="stats">
+      <div class="stat">
+        <small>ÚLTIMO CIERRE RECIBIDO</small>
+        <strong id="price">—</strong>
+      </div>
 
-<section class="panel">
-  <div class="panel-heading">
-    <h2 id="chartTitle">EUR/USD · Velas japonesas</h2>
-    <span class="status">Hora de las velas: UTC</span>
-  </div>
-  <div id="chart"></div>
-  <div id="message">Preparando gráfico...</div>
-  <p class="note">
-    Los datos proceden de la conexión configurada en Vercel. La actualización
-    consulta nuevas velas, pero no garantiza cotizaciones instantáneas ni que
-    coincidan exactamente con las de otra plataforma. Este gráfico no genera
-    todavía señales de compra o venta.
-  </p>
-</section>
-```
+      <div class="stat">
+        <small>HORA LOCAL DE LA ÚLTIMA VELA</small>
+        <strong id="lastTime">—</strong>
+      </div>
 
+      <div class="stat">
+        <small>FUENTE DE DATOS</small>
+        <strong class="gold">Twelve Data</strong>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-heading">
+        <h2 id="chartTitle">EUR/USD · Gráfico de velas</h2>
+        <span class="timezone">Hora de pantalla: Bahamas</span>
+      </div>
+
+      <div id="chart"></div>
+      <div id="message">Preparando gráfico...</div>
+
+      <p class="note">
+        El gráfico utiliza los datos devueltos por Twelve Data a través de
+        tu servidor de Vercel. Las horas de las velas se conservan en UTC
+        para el gráfico y se convierten a la zona horaria de Bahamas para
+        mostrarlas en pantalla. La conexión no garantiza cotizaciones
+        instantáneas. Todavía no se generan señales automáticas.
+      </p>
+    </section>
   </main>
 
   <script>
@@ -211,20 +286,19 @@
 
     const chart = LightweightCharts.createChart(chartElement, {
       layout: {
-        background: { color: "#121a2b" },
+        background: { color: "#121a29" },
         textColor: "#aab8d0"
       },
       grid: {
-        vertLines: { color: "#202b40" },
-        horzLines: { color: "#202b40" }
+        vertLines: { color: "#222d41" },
+        horzLines: { color: "#222d41" }
       },
-      rightPriceScale: { borderColor: "#26334b" },
+      rightPriceScale: { borderColor: "#29344a" },
       timeScale: {
-        borderColor: "#26334b",
+        borderColor: "#29344a",
         timeVisible: true,
         secondsVisible: false
       },
-      crosshair: { mode: 0 },
       width: chartElement.clientWidth,
       height: chartElement.clientHeight
     });
@@ -238,12 +312,21 @@
       wickDownColor: "#ff617c"
     });
 
-    new ResizeObserver(() => {
-      chart.applyOptions({
-        width: chartElement.clientWidth,
-        height: chartElement.clientHeight
+    if ("ResizeObserver" in window) {
+      new ResizeObserver(() => {
+        chart.applyOptions({
+          width: chartElement.clientWidth,
+          height: chartElement.clientHeight
+        });
+      }).observe(chartElement);
+    } else {
+      window.addEventListener("resize", () => {
+        chart.applyOptions({
+          width: chartElement.clientWidth,
+          height: chartElement.clientHeight
+        });
       });
-    }).observe(chartElement);
+    }
 
     function formatPrice(value) {
       return Number(value).toLocaleString("en-US", {
@@ -252,18 +335,32 @@
       });
     }
 
+    function formatBahamasTime(unixSeconds) {
+      return new Intl.DateTimeFormat("es-BS", {
+        timeZone: "America/Nassau",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      }).format(new Date(unixSeconds * 1000));
+    }
+
     async function loadCandles() {
       const symbol = symbolSelect.value;
       const interval = intervalSelect.value;
 
       refreshButton.disabled = true;
       connection.textContent = "● Conectando...";
-      message.textContent = "Solicitando datos al servidor...";
-      chartTitle.textContent = symbol + " · Velas japonesas (" + interval + ")";
+      connection.style.color = "#e6c46a";
+      message.textContent = "Solicitando velas al servidor...";
+      chartTitle.textContent =
+        symbol + " · Gráfico de velas (" + interval + ")";
 
       try {
-        const url = "/api/market?symbol=" +
-          encodeURIComponent(symbol) +
+        const url =
+          "/api/market?symbol=" + encodeURIComponent(symbol) +
           "&interval=" + encodeURIComponent(interval) +
           "&_=" + Date.now();
 
@@ -271,47 +368,56 @@
         const data = await response.json();
 
         if (!response.ok || !Array.isArray(data.values)) {
-          throw new Error(data.detail || data.error || "No se recibieron velas válidas.");
+          throw new Error(
+            data.detail || data.error || "No se recibieron velas válidas."
+          );
         }
 
-        const rows = data.values
-          .map(row => ({
-            time: Math.floor(Date.parse(row.datetime + "Z") / 1000),
+        const rows = data.values.map(row => {
+          // Twelve Data entrega la fecha como UTC en este endpoint.
+          // Se añade Z para interpretar la fecha explícitamente en UTC.
+          const timestamp = Date.parse(row.datetime + "Z");
+
+          return {
+            time: Math.floor(timestamp / 1000),
             open: Number(row.open),
             high: Number(row.high),
             low: Number(row.low),
             close: Number(row.close)
-          }))
-          .filter(row =>
-            Number.isFinite(row.time) &&
-            Number.isFinite(row.open) &&
-            Number.isFinite(row.high) &&
-            Number.isFinite(row.low) &&
-            Number.isFinite(row.close)
-          )
-          .sort((a, b) => a.time - b.time);
+          };
+        }).filter(row =>
+          Number.isFinite(row.time) &&
+          Number.isFinite(row.open) &&
+          Number.isFinite(row.high) &&
+          Number.isFinite(row.low) &&
+          Number.isFinite(row.close)
+        ).sort((a, b) => a.time - b.time);
 
-        if (!rows.length) {
-          throw new Error("El proveedor no devolvió velas utilizables.");
+        if (rows.length === 0) {
+          throw new Error("No hay velas válidas para mostrar.");
         }
 
         candles.setData(rows);
         chart.timeScale().fitContent();
 
         const latest = rows[rows.length - 1];
+
         price.textContent = formatPrice(latest.close);
-        lastTime.textContent = new Date(latest.time * 1000).toISOString()
-          .replace("T", " ").slice(0, 16);
+        lastTime.textContent = formatBahamasTime(latest.time);
 
         connection.textContent = "● Conectado";
         connection.style.color = "#20d6a0";
-        message.textContent = rows.length +
-          " velas recibidas correctamente. Última vela: " +
-          lastTime.textContent + " UTC.";
+
+        message.textContent =
+          rows.length + " velas recibidas. " +
+          "Última vela: " + formatBahamasTime(latest.time) +
+          " (hora de Bahamas).";
+
       } catch (error) {
         connection.textContent = "● Error de conexión";
         connection.style.color = "#ff617c";
-        message.textContent = "No se pudo actualizar el gráfico: " + error.message;
+        message.textContent =
+          "No se pudo actualizar el gráfico: " + error.message;
       } finally {
         refreshButton.disabled = false;
       }
@@ -324,6 +430,5 @@
     loadCandles();
     setInterval(loadCandles, 60000);
   </script>
-
 </body>
 </html>

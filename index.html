@@ -1,749 +1,329 @@
-
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080808">
-<title>JANE BOT — Trading Signals</title>
-<style>
-:root {
-  --bg:#080808;
-  --panel:#141414;
-  --line:#303030;
-  --gold:#e3b84f;
-  --text:#f5f5f5;
-  --muted:#999;
-  --green:#39dc8a;
-  --red:#ff626d;
-}
-* { box-sizing:border-box; }
-body {
-  margin:0;
-  background:radial-gradient(circle at top,#211a0b,#080808 45%);
-  color:var(--text);
-  font-family:Arial,Helvetica,sans-serif;
-}
-button,select { font:inherit; }
-button { cursor:pointer; }
-.app { max-width:1150px;margin:auto;padding:18px; }
-header {
-  display:flex;justify-content:space-between;
-  align-items:center;gap:12px;margin-bottom:18px;
-}
-.brand { display:flex;align-items:center;gap:12px; }
-.logo {
-  width:46px;height:46px;display:grid;place-items:center;
-  border:1px solid var(--gold);border-radius:13px;
-  color:var(--gold);font-size:24px;font-weight:900;
-}
-h1 { font-size:23px;letter-spacing:3px;margin:0; }
-header p { color:var(--muted);font-size:12px;margin:4px 0; }
-.status-pill {
-  border:1px solid #333;border-radius:30px;
-  padding:9px 12px;font-size:11px;color:#ccc;
-}
-.layout { display:grid;grid-template-columns:340px 1fr;gap:16px; }
-.card {
-  border:1px solid var(--line);border-radius:17px;
-  padding:17px;background:linear-gradient(145deg,#191919,#101010);
-  margin-bottom:16px;
-}
-h2 { font-size:15px;margin:0 0 15px; }
-.label {
-  color:var(--muted);font-size:11px;font-weight:bold;
-  letter-spacing:1px;margin-bottom:8px;
-}
-.field { margin-bottom:15px; }
-.mode,.tfgrid { display:grid;gap:7px; }
-.mode { grid-template-columns:1fr 1fr;margin-bottom:17px; }
-.tfgrid { grid-template-columns:repeat(3,1fr); }
-.mode button,.tf {
-  padding:11px 5px;border-radius:10px;
-  border:1px solid #383838;background:#171717;color:#aaa;
-  font-weight:bold;
-}
-.mode button.active,.tf.active {
-  border-color:var(--gold);background:#251d0b;color:#ffe19a;
-}
-select {
-  width:100%;padding:12px;border-radius:10px;
-  background:#090909;color:white;border:1px solid #383838;
-}
-.generate {
-  width:100%;padding:15px;border:0;border-radius:12px;
-  background:linear-gradient(135deg,#f6dc83,#d6a63b);
-  color:#111;font-weight:900;
-}
-.generate:disabled { opacity:.6;cursor:wait; }
-.status { color:#aaa;text-align:center;font-size:12px;line-height:1.5;margin-top:12px; }
-.note { color:#888;font-size:10px;line-height:1.6;margin-top:12px; }
-.empty {
-  min-height:380px;display:grid;place-items:center;
-  text-align:center;color:#999;border:1px dashed #333;
-  border-radius:13px;padding:25px;
-}
-.empty strong { display:block;color:var(--gold);font-size:22px;margin-bottom:10px; }
-.hidden { display:none!important; }
-.signal-head { display:flex;justify-content:space-between;gap:10px; }
-.pill { border:1px solid #383838;padding:7px 9px;border-radius:20px;font-size:10px;color:#bbb; }
-.direction { font-size:46px;font-weight:900;margin:12px 0; }
-.buy { color:var(--green); }
-.sell { color:var(--red); }
-.neutral { color:var(--gold); }
-.subline { color:#aaa;font-size:12px; }
-.score { margin-top:15px;padding:13px;background:#0b0b0b;border:1px solid #292929;border-radius:12px; }
-.score-line { display:flex;justify-content:space-between;font-size:12px;margin-bottom:9px; }
-.score-line b { font-size:18px; }
-.bar { height:8px;background:#292929;border-radius:20px;overflow:hidden; }
-.bar span { display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));transition:width .5s; }
-.details { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px; }
-.detail { padding:12px;background:#0b0b0b;border:1px solid #292929;border-radius:11px; }
-.detail span { display:block;color:#888;font-size:10px;text-transform:uppercase; }
-.detail b { display:block;margin-top:5px;font-size:14px;overflow-wrap:anywhere; }
-.reasons { margin-top:10px;padding:13px;background:#0b0b0b;border:1px solid #292929;border-radius:11px; }
-.reasons h3 { color:var(--gold);font-size:12px;margin:0 0 10px; }
-.reason { color:#bbb;font-size:12px;margin:8px 0;line-height:1.5; }
-.reason:before { content:"✓ ";color:var(--green); }
-.warning { font-size:10px;color:#999;line-height:1.6;margin-top:12px; }
-.actions { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px; }
-.actions button {
-  padding:10px;border-radius:10px;background:#151515;
-  border:1px solid #333;color:#ddd;font-weight:bold;
-}
-.actions .win { color:var(--green); }
-.actions .loss { color:var(--red); }
-.lower { display:grid;grid-template-columns:1.4fr 1fr;gap:16px; }
-.history { max-height:400px;overflow:auto; }
-.hist-row {
-  display:grid;grid-template-columns:65px 1fr auto;
-  gap:8px;align-items:center;padding:11px 0;
-  border-bottom:1px solid #292929;font-size:12px;
-}
-.hist-row small { display:block;color:#888;margin-top:5px; }
-.tag { font-size:10px;font-weight:bold;padding:6px;border-radius:7px;background:#251e0b;color:var(--gold); }
-.tag.win { background:#102519;color:var(--green); }
-.tag.loss { background:#2a1013;color:var(--red); }
-.stats { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
-.stat { padding:13px;background:#0b0b0b;border:1px solid #292929;border-radius:11px; }
-.stat span { display:block;color:#888;font-size:10px; }
-.stat b { display:block;font-size:23px;margin-top:6px; }
-.clear { width:100%;padding:9px;margin-top:10px;background:#111;border:1px solid #333;border-radius:9px;color:#aaa; }
-@media(max-width:780px) {
-  .layout,.lower { grid-template-columns:1fr; }
-  .app { padding:12px; }
-  .empty { min-height:250px; }
-  h1 { font-size:19px; }
-}
-@media(max-width:420px) {
-  .tfgrid { grid-template-columns:repeat(2,1fr); }
-  .direction { font-size:39px; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jane Bot — Trading Signals</title>
+  <script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: #121a2b;
+      --border: #26334b;
+      --text: #edf3ff;
+      --muted: #91a0ba;
+      --green: #20d6a0;
+      --red: #ff617c;
+      --blue: #7198ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 5%;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { font-size: 23px; font-weight: 800; }
+    .brand span { color: var(--green); }
+    .status { color: var(--muted); font-size: 12px; }
+    main { max-width: 1250px; margin: auto; padding: 22px; }
+    .toolbar, .stats, .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .toolbar {
+      padding: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+    .field { flex: 1; min-width: 145px; }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+    select, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #0d1424;
+      color: var(--text);
+      font-size: 14px;
+    }
+    button {
+      background: var(--green);
+      color: #061b16;
+      border: 0;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .stat { padding: 16px; background: var(--panel); min-width: 0; }
+    .stat small { color: var(--muted); display: block; margin-bottom: 8px; }
+    .stat strong { font-size: 18px; overflow-wrap: anywhere; }
+    .panel { padding: 16px; }
+    .panel-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    h2 { font-size: 16px; margin: 0; }
+    #chart { width: 100%; height: 430px; }
+    #message { color: var(--muted); font-size: 13px; margin-top: 12px; }
+    .note { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 15px; }
+    .green { color: var(--green); }
+    @media (max-width: 600px) {
+      main { padding: 12px; }
+      header { padding: 15px; }
+      .stats { grid-template-columns: 1fr; }
+      #chart { height: 340px; }
+    }
+  </style>
 </head>
 <body>
-<div class="app">
-<header>
-  <div class="brand">
-    <div class="logo">J</div>
-    <div><h1>JANE BOT</h1><p>Análisis de mercado · Twelve Data</p></div>
-  </div>
-  <div class="status-pill" id="connection">ESPERANDO DATOS</div>
-</header>
+  <header>
+    <div class="brand">JANE <span>BOT</span></div>
+    <div class="status" id="connection">● Comprobando conexión...</div>
+  </header>
 
-<main class="layout">
-<section class="card">
-  <h2>Crear señal</h2>
-  <div class="label">Modo</div>
-  <div class="mode">
-    <button id="forexBtn" class="active">FOREX</button>
-    <button id="binaryBtn">BINARIA</button>
-  </div>
+  <main>
+    <div class="toolbar">
+      <div class="field">
+        <label for="symbol">PAR DE DIVISAS</label>
+        <select id="symbol">
+          <option>EUR/USD</option>
+          <option>GBP/USD</option>
+          <option>USD/JPY</option>
+          <option>USD/CHF</option>
+          <option>AUD/USD</option>
+          <option>USD/CAD</option>
+          <option>NZD/USD</option>
+          <option>EUR/GBP</option>
+          <option>EUR/JPY</option>
+          <option>GBP/JPY</option>
+          <option>EUR/CHF</option>
+          <option>AUD/JPY</option>
+          <option>GBP/CHF</option>
+          <option>EUR/AUD</option>
+          <option>EUR/CAD</option>
+          <option>GBP/CAD</option>
+          <option>AUD/CAD</option>
+          <option>CAD/JPY</option>
+          <option>CHF/JPY</option>
+          <option>NZD/JPY</option>
+        </select>
+      </div>
 
+```
   <div class="field">
-    <div class="label">Par de divisas</div>
-    <select id="asset">
-      <option>EUR/USD</option>
-      <option>GBP/USD</option>
-      <option>USD/JPY</option>
-      <option>AUD/USD</option>
-      <option>USD/CAD</option>
-      <option>USD/CHF</option>
-      <option>NZD/USD</option>
-      <option>EUR/GBP</option>
-      <option>EUR/JPY</option>
-      <option>GBP/JPY</option>
-      <option>AUD/JPY</option>
-      <option>EUR/AUD</option>
+    <label for="interval">TEMPORALIDAD</label>
+    <select id="interval">
+      <option value="1min">1 minuto</option>
+      <option value="5min">5 minutos</option>
+      <option value="15min">15 minutos</option>
+      <option value="30min">30 minutos</option>
+      <option value="45min">45 minutos</option>
+      <option value="1h">1 hora</option>
+      <option value="2h">2 horas</option>
+      <option value="4h">4 horas</option>
+      <option value="8h">8 horas</option>
+      <option value="1day">1 día</option>
+      <option value="1week">1 semana</option>
+      <option value="1month">1 mes</option>
     </select>
   </div>
 
   <div class="field">
-    <div class="label">Vela / Time frame</div>
-    <div class="tfgrid" id="tfgrid"></div>
+    <label>&nbsp;</label>
+    <button id="refresh">Actualizar gráfico</button>
   </div>
-
-  <div class="field hidden" id="durationField">
-    <div class="label">Duración de referencia</div>
-    <div class="tfgrid" id="durationGrid"></div>
-  </div>
-
-  <button class="generate" id="generateBtn">⚡ GENERAR SEÑAL</button>
-  <div class="status" id="status">Selecciona un par y genera una señal.</div>
-  <div class="note">
-    El análisis es informativo. No ejecuta operaciones. El score no es una
-    probabilidad garantizada. Los pares de divisas de Twelve Data no equivalen
-    a los mercados OTC de un bróker.
-  </div>
-</section>
-
-<section class="card">
-  <div class="empty" id="empty">
-    <div><strong>JANE BOT</strong>La señal aparecerá aquí cuando se reciban suficientes velas reales.</div>
-  </div>
-  <div id="result" class="hidden"></div>
-</section>
-</main>
-
-<section class="lower">
-  <div class="card">
-    <h2>Historial de señales</h2>
-    <div id="history" class="history"></div>
-    <button class="clear" id="clearHistory">Borrar historial</button>
-  </div>
-  <div class="card">
-    <h2>Estadísticas</h2>
-    <div id="stats" class="stats"></div>
-  </div>
-</section>
 </div>
 
-<script>
-'use strict';
+<section class="stats">
+  <div class="stat">
+    <small>ÚLTIMO CIERRE RECIBIDO</small>
+    <strong id="price">—</strong>
+  </div>
+  <div class="stat">
+    <small>ÚLTIMA VELA</small>
+    <strong id="lastTime">—</strong>
+  </div>
+  <div class="stat">
+    <small>FUENTE DE DATOS</small>
+    <strong class="green">Twelve Data</strong>
+  </div>
+</section>
 
-/*
-  CONFIGURACIÓN:
-  Este código espera que el backend esté publicado en:
-  api/candles.js
+<section class="panel">
+  <div class="panel-heading">
+    <h2 id="chartTitle">EUR/USD · Velas japonesas</h2>
+    <span class="status">Hora de las velas: UTC</span>
+  </div>
+  <div id="chart"></div>
+  <div id="message">Preparando gráfico...</div>
+  <p class="note">
+    Los datos proceden de la conexión configurada en Vercel. La actualización
+    consulta nuevas velas, pero no garantiza cotizaciones instantáneas ni que
+    coincidan exactamente con las de otra plataforma. Este gráfico no genera
+    todavía señales de compra o venta.
+  </p>
+</section>
+```
 
-  URL utilizada:
-  /api/candles?symbol=EUR%2FUSD&interval=1min
+  </main>
 
-  Configura TWELVEDATA_API_KEY en las variables de entorno de Vercel.
-  No escribas tu clave secreta en este archivo.
-*/
+  <script>
+    const symbolSelect = document.getElementById("symbol");
+    const intervalSelect = document.getElementById("interval");
+    const refreshButton = document.getElementById("refresh");
+    const connection = document.getElementById("connection");
+    const message = document.getElementById("message");
+    const price = document.getElementById("price");
+    const lastTime = document.getElementById("lastTime");
+    const chartTitle = document.getElementById("chartTitle");
+    const chartElement = document.getElementById("chart");
 
-const API_ENDPOINT = '/api/candles';
-
-const TIMEFRAMES = [
-  {label:'1 min',api:'1min'},
-  {label:'5 min',api:'5min'},
-  {label:'15 min',api:'15min'},
-  {label:'30 min',api:'30min'},
-  {label:'45 min',api:'45min'},
-  {label:'1 hora',api:'1h'},
-  {label:'2 horas',api:'2h'},
-  {label:'4 horas',api:'4h'},
-  {label:'8 horas',api:'8h'},
-  {label:'1 día',api:'1day'},
-  {label:'1 semana',api:'1week'},
-  {label:'1 mes',api:'1month'}
-];
-
-const DURATIONS = [
-  {label:'1 min',seconds:60},
-  {label:'5 min',seconds:300},
-  {label:'15 min',seconds:900},
-  {label:'30 min',seconds:1800}
-];
-
-const $ = id => document.getElementById(id);
-
-let mode = 'forex';
-let selectedTf = '1min';
-let selectedDuration = 60;
-let history = [];
-
-try {
-  const saved = JSON.parse(localStorage.getItem('janeHistoryV10') || '[]');
-  if (Array.isArray(saved)) history = saved;
-} catch (_) {
-  history = [];
-}
-
-let currentId = null;
-
-function formatPrice(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return '—';
-  if (Math.abs(n) >= 100) return n.toFixed(2);
-  if (Math.abs(n) >= 10) return n.toFixed(3);
-  return n.toFixed(5);
-}
-
-function formatTime(timestamp) {
-  return new Intl.DateTimeFormat('es-BS', {
-    timeZone: 'America/Nassau',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  }).format(new Date(timestamp));
-}
-
-function setStatus(message, error = false) {
-  $('status').textContent = message;
-  $('connection').textContent = error ? 'ERROR DE DATOS' : 'LISTO PARA ANALIZAR';
-}
-
-function setMode(nextMode) {
-  mode = nextMode;
-  $('forexBtn').classList.toggle('active', mode === 'forex');
-  $('binaryBtn').classList.toggle('active', mode === 'binary');
-  $('durationField').classList.toggle('hidden', mode !== 'binary');
-  clearSignal();
-}
-
-function drawButtons() {
-  $('tfgrid').innerHTML = TIMEFRAMES.map(t =>
-    `<button type="button" class="tf ${t.api === selectedTf ? 'active' : ''}" data-tf="${t.api}">${t.label}</button>`
-  ).join('');
-
-  $('durationGrid').innerHTML = DURATIONS.map(d =>
-    `<button type="button" class="tf ${d.seconds === selectedDuration ? 'active' : ''}" data-duration="${d.seconds}">${d.label}</button>`
-  ).join('');
-
-  document.querySelectorAll('[data-tf]').forEach(button => {
-    button.addEventListener('click', () => {
-      selectedTf = button.dataset.tf;
-      drawButtons();
-      clearSignal();
+    const chart = LightweightCharts.createChart(chartElement, {
+      layout: {
+        background: { color: "#121a2b" },
+        textColor: "#aab8d0"
+      },
+      grid: {
+        vertLines: { color: "#202b40" },
+        horzLines: { color: "#202b40" }
+      },
+      rightPriceScale: { borderColor: "#26334b" },
+      timeScale: {
+        borderColor: "#26334b",
+        timeVisible: true,
+        secondsVisible: false
+      },
+      crosshair: { mode: 0 },
+      width: chartElement.clientWidth,
+      height: chartElement.clientHeight
     });
-  });
 
-  document.querySelectorAll('[data-duration]').forEach(button => {
-    button.addEventListener('click', () => {
-      selectedDuration = Number(button.dataset.duration);
-      drawButtons();
-      clearSignal();
+    const candles = chart.addCandlestickSeries({
+      upColor: "#20d6a0",
+      downColor: "#ff617c",
+      borderUpColor: "#20d6a0",
+      borderDownColor: "#ff617c",
+      wickUpColor: "#20d6a0",
+      wickDownColor: "#ff617c"
     });
-  });
-}
 
-function clearSignal() {
-  $('empty').classList.remove('hidden');
-  $('result').classList.add('hidden');
-  $('result').innerHTML = '';
-  setStatus('Listo. Selecciona el par y pulsa GENERAR SEÑAL.');
-}
+    new ResizeObserver(() => {
+      chart.applyOptions({
+        width: chartElement.clientWidth,
+        height: chartElement.clientHeight
+      });
+    }).observe(chartElement);
 
-function parseCandleTime(value) {
-  if (typeof value === 'number') {
-    return value < 1e12 ? value * 1000 : value;
-  }
-
-  const text = String(value || '').trim();
-  if (!text) return NaN;
-
-  // El backend solicita timezone=UTC.
-  const iso = /Z$|[+-]\d\d:\d\d$/.test(text)
-    ? text
-    : text.replace(' ', 'T') + 'Z';
-
-  return Date.parse(iso);
-}
-
-async function getCandles(symbol, interval) {
-  const url = API_ENDPOINT
-    + '?symbol=' + encodeURIComponent(symbol)
-    + '&interval=' + encodeURIComponent(interval);
-
-  let response;
-
-  try {
-    response = await fetch(url, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: {'Accept':'application/json'}
-    });
-  } catch (_) {
-    throw new Error(
-      'No se pudo conectar con /api/candles. Comprueba que el backend esté publicado en Vercel.'
-    );
-  }
-
-  let data;
-
-  try {
-    data = await response.json();
-  } catch (_) {
-    throw new Error(
-      'El backend no devolvió JSON. Revisa la ruta /api/candles.'
-    );
-  }
-
-  if (!response.ok) {
-    throw new Error(data.detail || data.error || ('Error HTTP ' + response.status));
-  }
-
-  if (!Array.isArray(data.values)) {
-    throw new Error(data.error || 'La respuesta no contiene velas válidas.');
-  }
-
-  const candles = data.values.map(v => ({
-    time: parseCandleTime(v.datetime || v.time || v.timestamp),
-    open: Number(v.open),
-    high: Number(v.high),
-    low: Number(v.low),
-    close: Number(v.close)
-  })).filter(c =>
-    Number.isFinite(c.time) &&
-    [c.open,c.high,c.low,c.close].every(Number.isFinite)
-  );
-
-  // Twelve Data normalmente entrega las velas de más recientes a más antiguas.
-  candles.sort((a,b) => a.time - b.time);
-
-  return candles.filter((c,i,arr) =>
-    i === 0 || c.time !== arr[i-1].time
-  );
-}
-
-function ema(values, period) {
-  if (values.length < period) return NaN;
-  const multiplier = 2 / (period + 1);
-  let result = values[0];
-
-  for (let i = 1; i < values.length; i++) {
-    result = values[i] * multiplier + result * (1 - multiplier);
-  }
-
-  return result;
-}
-
-function rsi(values, period = 14) {
-  if (values.length <= period) return NaN;
-
-  let gains = 0;
-  let losses = 0;
-
-  for (let i = values.length - period; i < values.length; i++) {
-    const change = values[i] - values[i-1];
-    if (change > 0) gains += change;
-    else losses -= change;
-  }
-
-  if (losses === 0) return 100;
-
-  const rs = gains / losses;
-  return 100 - (100 / (1 + rs));
-}
-
-function calculateATR(candles, period = 14) {
-  if (candles.length < period + 1) return NaN;
-
-  const ranges = [];
-
-  for (let i = 1; i < candles.length; i++) {
-    const current = candles[i];
-    const previousClose = candles[i-1].close;
-
-    ranges.push(Math.max(
-      current.high - current.low,
-      Math.abs(current.high - previousClose),
-      Math.abs(current.low - previousClose)
-    ));
-  }
-
-  const recent = ranges.slice(-period);
-  return recent.reduce((sum,value) => sum + value, 0) / recent.length;
-}
-
-function analyze(candles) {
-  const closes = candles.map(c => c.close);
-  const latest = candles[candles.length - 1].close;
-
-  const ema9 = ema(closes.slice(-80), 9);
-  const ema21 = ema(closes.slice(-120), 21);
-  const rsiValue = rsi(closes, 14);
-  const atrValue = calculateATR(candles, 14);
-
-  if (![latest,ema9,ema21,rsiValue,atrValue].every(Number.isFinite)) {
-    throw new Error('Los datos no son suficientes para calcular los indicadores.');
-  }
-
-  let score = 50;
-  const reasons = [];
-
-  if (latest > ema9) {
-    score += 10;
-    reasons.push('El último cierre está por encima de la EMA 9.');
-  } else {
-    score -= 10;
-    reasons.push('El último cierre está por debajo de la EMA 9.');
-  }
-
-  if (ema9 > ema21) {
-    score += 18;
-    reasons.push('La EMA 9 está por encima de la EMA 21: sesgo alcista.');
-  } else {
-    score -= 18;
-    reasons.push('La EMA 9 está por debajo de la EMA 21: sesgo bajista.');
-  }
-
-  if (rsiValue >= 52 && rsiValue <= 68) {
-    score += 12;
-    reasons.push('El RSI acompaña el impulso alcista.');
-  } else if (rsiValue >= 32 && rsiValue <= 48) {
-    score -= 12;
-    reasons.push('El RSI acompaña el impulso bajista.');
-  } else if (rsiValue > 70) {
-    score -= 5;
-    reasons.push('RSI elevado: cuidado con posible sobrecompra.');
-  } else if (rsiValue < 30) {
-    score += 5;
-    reasons.push('RSI bajo: cuidado con posible sobreventa.');
-  } else {
-    reasons.push('El RSI no confirma una dirección fuerte.');
-  }
-
-  const recent = candles.slice(-20);
-  const highest = Math.max(...recent.map(c => c.high));
-  const lowest = Math.min(...recent.map(c => c.low));
-  const position = (latest - lowest) / (highest - lowest || 1);
-
-  if (position > 0.8) {
-    reasons.push('Precio cerca del extremo superior del rango reciente.');
-  } else if (position < 0.2) {
-    reasons.push('Precio cerca del extremo inferior del rango reciente.');
-  } else {
-    reasons.push('Precio dentro del rango reciente.');
-  }
-
-  score = Math.max(0, Math.min(100, Math.round(score)));
-
-  let direction = 'NO SIGNAL';
-  if (score >= 65) direction = 'BUY';
-  if (score <= 35) direction = 'SELL';
-
-  return {
-    latest, ema9, ema21, rsiValue,
-    atrValue, score, direction, reasons
-  };
-}
-
-function timeframeLabel(api) {
-  const found = TIMEFRAMES.find(t => t.api === api);
-  return found ? found.label : api;
-}
-
-function saveHistory() {
-  try {
-    localStorage.setItem('janeHistoryV10', JSON.stringify(history));
-  } catch (_) {}
-}
-
-function renderSignal(data, symbol, interval, candleCount) {
-  const direction = mode === 'binary'
-    ? (data.direction === 'BUY' ? 'CALL'
-      : data.direction === 'SELL' ? 'PUT' : 'NO SIGNAL')
-    : data.direction;
-
-  const className = ['BUY','CALL'].includes(direction)
-    ? 'buy'
-    : ['SELL','PUT'].includes(direction) ? 'sell' : 'neutral';
-
-  currentId = (window.crypto && crypto.randomUUID)
-    ? crypto.randomUUID()
-    : String(Date.now());
-
-  const entry = data.latest;
-  const stopLoss = data.direction === 'BUY'
-    ? entry - 1.2 * data.atrValue
-    : entry + 1.2 * data.atrValue;
-  const takeProfit = data.direction === 'BUY'
-    ? entry + 1.8 * data.atrValue
-    : entry - 1.8 * data.atrValue;
-
-  const duration = DURATIONS.find(d => d.seconds === selectedDuration);
-  const expiration = new Date(Date.now() + selectedDuration * 1000);
-
-  const record = {
-    id: currentId,
-    time: Date.now(),
-    mode,
-    symbol,
-    direction,
-    score: data.score,
-    timeframe: timeframeLabel(interval),
-    duration: mode === 'binary' ? duration.label : null,
-    entry,
-    stopLoss: mode === 'forex' ? stopLoss : null,
-    takeProfit: mode === 'forex' ? takeProfit : null,
-    result: 'OPEN'
-  };
-
-  history.unshift(record);
-  history = history.slice(0,100);
-  saveHistory();
-  renderHistory();
-
-  $('empty').classList.add('hidden');
-  $('result').classList.remove('hidden');
-
-  $('result').innerHTML = `
-    <div class="signal-head">
-      <div>
-        <div class="pill">${mode === 'forex' ? 'FOREX' : 'BINARIA'} · ${symbol}</div>
-        <div class="direction ${className}">${direction}</div>
-        <div class="subline">Vela ${timeframeLabel(interval)} · ${formatTime(record.time)}</div>
-      </div>
-      <div class="pill">${mode === 'binary' ? 'DURACIÓN ' + duration.label : 'ANÁLISIS'}</div>
-    </div>
-
-    <div class="score">
-      <div class="score-line"><span>Score del modelo</span><b>${data.score}/100</b></div>
-      <div class="bar"><span id="scoreBar"></span></div>
-    </div>
-
-    <div class="details">
-      <div class="detail"><span>Precio más reciente</span><b>${formatPrice(data.latest)}</b></div>
-      <div class="detail"><span>Entrada de referencia</span><b>${formatPrice(entry)}</b></div>
-      ${mode === 'forex'
-        ? `<div class="detail"><span>Stop Loss estimado</span><b>${formatPrice(stopLoss)}</b></div>
-           <div class="detail"><span>Take Profit estimado</span><b>${formatPrice(takeProfit)}</b></div>`
-        : `<div class="detail"><span>Duración</span><b>${duration.label}</b></div>
-           <div class="detail"><span>Expiración orientativa</span><b>${formatTime(expiration.getTime())}</b></div>`
-      }
-      <div class="detail"><span>RSI 14</span><b>${data.rsiValue.toFixed(1)}</b></div>
-      <div class="detail"><span>EMA 9 / 21</span><b>${formatPrice(data.ema9)} / ${formatPrice(data.ema21)}</b></div>
-    </div>
-
-    <div class="reasons">
-      <h3>RAZONES DEL ANÁLISIS</h3>
-      ${data.reasons.map(reason => `<div class="reason">${reason}</div>`).join('')}
-    </div>
-
-    <div class="warning">
-      ${candleCount} velas recibidas. El score no es una probabilidad de ganar.
-      Stop Loss y Take Profit son niveles calculados, no órdenes enviadas al bróker.
-      La expiración binaria es orientativa. Jane Bot no ejecuta operaciones.
-    </div>
-
-    <div class="actions">
-      <button class="win" id="markWin">✓ Registrar WIN</button>
-      <button class="loss" id="markLoss">✕ Registrar LOSS</button>
-    </div>
-  `;
-
-  $('scoreBar').style.width = data.score + '%';
-  $('markWin').onclick = () => setResult('WIN');
-  $('markLoss').onclick = () => setResult('LOSS');
-
-  setStatus('Análisis completado. ' + candleCount + ' velas válidas recibidas.');
-}
-
-async function generateSignal() {
-  const button = $('generateBtn');
-  button.disabled = true;
-  button.textContent = 'RECIBIENDO VELAS…';
-  $('connection').textContent = 'CARGANDO DATOS';
-  setStatus('Conectando con el backend de Twelve Data…');
-
-  try {
-    const symbol = $('asset').value;
-    const interval = selectedTf;
-    const candles = await getCandles(symbol, interval);
-
-    if (candles.length < 40) {
-      throw new Error(
-        'Solo llegaron ' + candles.length +
-        ' velas. Se necesitan al menos 40. Comprueba el plan y los límites de Twelve Data.'
-      );
+    function formatPrice(value) {
+      return Number(value).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6
+      });
     }
 
-    const data = analyze(candles);
-    renderSignal(data, symbol, interval, candles.length);
-    $('connection').textContent = 'DATOS RECIBIDOS';
-  } catch (error) {
-    $('empty').classList.remove('hidden');
-    $('result').classList.add('hidden');
-    $('connection').textContent = 'ERROR DE CONEXIÓN';
-    setStatus(error.message || 'No se pudo generar la señal.', true);
-  } finally {
-    button.disabled = false;
-    button.textContent = '⚡ GENERAR SEÑAL';
-  }
-}
+    async function loadCandles() {
+      const symbol = symbolSelect.value;
+      const interval = intervalSelect.value;
 
-function setResult(result) {
-  const item = history.find(h => h.id === currentId);
-  if (!item) return;
-  item.result = result;
-  saveHistory();
-  renderHistory();
-  setStatus('Resultado guardado: ' + result + '.');
-}
+      refreshButton.disabled = true;
+      connection.textContent = "● Conectando...";
+      message.textContent = "Solicitando datos al servidor...";
+      chartTitle.textContent = symbol + " · Velas japonesas (" + interval + ")";
 
-function renderHistory() {
-  const historyElement = $('history');
+      try {
+        const url = "/api/market?symbol=" +
+          encodeURIComponent(symbol) +
+          "&interval=" + encodeURIComponent(interval) +
+          "&_=" + Date.now();
 
-  if (!history.length) {
-    historyElement.innerHTML = '<p class="note">Todavía no hay señales guardadas.</p>';
-  } else {
-    historyElement.innerHTML = history.map(item => {
-      const directionClass = ['BUY','CALL'].includes(item.direction)
-        ? 'buy'
-        : ['SELL','PUT'].includes(item.direction) ? 'sell' : 'neutral';
+        const response = await fetch(url, { cache: "no-store" });
+        const data = await response.json();
 
-      const resultClass = item.result === 'WIN'
-        ? 'win' : item.result === 'LOSS' ? 'loss' : '';
+        if (!response.ok || !Array.isArray(data.values)) {
+          throw new Error(data.detail || data.error || "No se recibieron velas válidas.");
+        }
 
-      return `
-        <div class="hist-row">
-          <b class="${directionClass}">${item.direction}</b>
-          <div>
-            <b>${item.symbol}</b>
-            <small>${item.mode === 'binary' ? 'Binaria' : 'Forex'} · ${item.timeframe} · ${formatTime(item.time)} · ${item.score}/100</small>
-          </div>
-          <span class="tag ${resultClass}">${item.result}</span>
-        </div>
-      `;
-    }).join('');
-  }
+        const rows = data.values
+          .map(row => ({
+            time: Math.floor(Date.parse(row.datetime + "Z") / 1000),
+            open: Number(row.open),
+            high: Number(row.high),
+            low: Number(row.low),
+            close: Number(row.close)
+          }))
+          .filter(row =>
+            Number.isFinite(row.time) &&
+            Number.isFinite(row.open) &&
+            Number.isFinite(row.high) &&
+            Number.isFinite(row.low) &&
+            Number.isFinite(row.close)
+          )
+          .sort((a, b) => a.time - b.time);
 
-  const decided = history.filter(h => h.result === 'WIN' || h.result === 'LOSS');
-  const wins = decided.filter(h => h.result === 'WIN').length;
-  const losses = decided.filter(h => h.result === 'LOSS').length;
-  const winRate = decided.length ? Math.round(wins / decided.length * 100) : 0;
-  const pending = history.filter(h => h.result === 'OPEN').length;
+        if (!rows.length) {
+          throw new Error("El proveedor no devolvió velas utilizables.");
+        }
 
-  $('stats').innerHTML = `
-    <div class="stat"><span>Total de señales</span><b>${history.length}</b></div>
-    <div class="stat"><span>WIN registrados</span><b class="buy">${wins}</b></div>
-    <div class="stat"><span>LOSS registrados</span><b class="sell">${losses}</b></div>
-    <div class="stat"><span>Win rate registrado</span><b>${winRate}%</b></div>
-    <div class="stat"><span>Pendientes</span><b>${pending}</b></div>
-    <div class="stat"><span>Fuente de velas</span><b style="font-size:14px">Twelve Data</b></div>
-  `;
-}
+        candles.setData(rows);
+        chart.timeScale().fitContent();
 
-$('forexBtn').addEventListener('click', () => setMode('forex'));
-$('binaryBtn').addEventListener('click', () => setMode('binary'));
-$('generateBtn').addEventListener('click', generateSignal);
+        const latest = rows[rows.length - 1];
+        price.textContent = formatPrice(latest.close);
+        lastTime.textContent = new Date(latest.time * 1000).toISOString()
+          .replace("T", " ").slice(0, 16);
 
-$('clearHistory').addEventListener('click', () => {
-  if (confirm('¿Quieres borrar todo el historial de señales?')) {
-    history = [];
-    saveHistory();
-    renderHistory();
-  }
-});
+        connection.textContent = "● Conectado";
+        connection.style.color = "#20d6a0";
+        message.textContent = rows.length +
+          " velas recibidas correctamente. Última vela: " +
+          lastTime.textContent + " UTC.";
+      } catch (error) {
+        connection.textContent = "● Error de conexión";
+        connection.style.color = "#ff617c";
+        message.textContent = "No se pudo actualizar el gráfico: " + error.message;
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
 
-drawButtons();
-renderHistory();
-</script>
+    refreshButton.addEventListener("click", loadCandles);
+    symbolSelect.addEventListener("change", loadCandles);
+    intervalSelect.addEventListener("change", loadCandles);
+
+    loadCandles();
+    setInterval(loadCandles, 60000);
+  </script>
+
 </body>
 </html>

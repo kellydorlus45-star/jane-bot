@@ -1,20 +1,22 @@
-
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jane Bot — Trading Signals</title>
+  <script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #050b16;
-      --panel: #0b1728;
-      --line: #183651;
-      --blue: #287cff;
-      --cyan: #21e0d0;
-      --text: #edf7ff;
-      --muted: #9bb0c8;
+      --bg: #0b1020;
+      --panel: #121a2b;
+      --border: #26334b;
+      --text: #edf3ff;
+      --muted: #91a0ba;
+      --green: #20d6a0;
+      --red: #ff617c;
+      --blue: #7198ff;
     }
     * { box-sizing: border-box; }
     body {
@@ -23,165 +25,305 @@
       color: var(--text);
       font-family: Arial, sans-serif;
     }
-    main { max-width: 760px; margin: auto; padding: 22px; }
-    header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
-    .logo {
-      display: grid; place-items: center;
-      width: 46px; height: 46px; border-radius: 14px;
-      background: #102c4b; color: var(--cyan); font-size: 23px;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 5%;
+      border-bottom: 1px solid var(--border);
     }
-    h1 { font-size: 23px; margin: 0; }
-    .subtitle, .muted { color: var(--muted); font-size: 13px; }
-    .status, .panel {
+    .brand { font-size: 23px; font-weight: 800; }
+    .brand span { color: var(--green); }
+    .status { color: var(--muted); font-size: 12px; }
+    main { max-width: 1250px; margin: auto; padding: 22px; }
+    .toolbar, .stats, .panel {
       background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 15px;
-      padding: 17px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .toolbar {
+      padding: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
       margin-bottom: 16px;
     }
-    .status { border-left: 4px solid #f0b44b; }
-    .status strong { display: block; margin-bottom: 6px; }
-    .modes { display: flex; gap: 8px; margin: 14px 0; }
-    button, select, input {
-      font: inherit; border-radius: 10px; padding: 12px;
-      border: 1px solid var(--line);
-      background: #081222; color: var(--text); width: 100%;
+    .field { flex: 1; min-width: 145px; }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
     }
-    .modes button { cursor: pointer; }
-    .modes button.active { background: #1748a0; border-color: var(--blue); }
-    label { display: block; font-size: 13px; color: var(--muted); margin: 13px 0 7px; }
-    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .units { display: flex; gap: 8px; }
-    .units input { min-width: 0; }
-    .units select { width: 120px; }
-    .primary {
-      margin-top: 18px; background: #164fae;
-      border-color: #277bff; font-weight: bold;
+    select, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: #0d1424;
+      color: var(--text);
+      font-size: 14px;
     }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    h2 { font-size: 17px; margin: 0 0 12px; }
-    #message { line-height: 1.5; font-size: 14px; }
-    footer { color: var(--muted); font-size: 12px; line-height: 1.6; padding: 8px 2px; }
-    @media (max-width: 480px) {
-      main { padding: 14px; }
-      .field-row { grid-template-columns: 1fr; gap: 0; }
+    button {
+      background: var(--green);
+      color: #061b16;
+      border: 0;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .stat { padding: 16px; background: var(--panel); min-width: 0; }
+    .stat small { color: var(--muted); display: block; margin-bottom: 8px; }
+    .stat strong { font-size: 18px; overflow-wrap: anywhere; }
+    .panel { padding: 16px; }
+    .panel-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    h2 { font-size: 16px; margin: 0; }
+    #chart { width: 100%; height: 430px; }
+    #message { color: var(--muted); font-size: 13px; margin-top: 12px; }
+    .note { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 15px; }
+    .green { color: var(--green); }
+    @media (max-width: 600px) {
+      main { padding: 12px; }
+      header { padding: 15px; }
+      .stats { grid-template-columns: 1fr; }
+      #chart { height: 340px; }
     }
   </style>
 </head>
 <body>
-<main>
   <header>
-    <div class="logo">◈</div>
-    <div>
-      <h1>JANE BOT</h1>
-      <div class="subtitle">Trading Signals · Análisis de mercado</div>
-    </div>
+    <div class="brand">JANE <span>BOT</span></div>
+    <div class="status" id="connection">● Comprobando conexión...</div>
   </header>
 
-  <section class="status" aria-live="polite">
-    <strong>Datos del mercado: aún no conectados</strong>
-    <span class="muted">No se mostrarán precios ni señales hasta verificar una fuente de datos real.</span>
-  </section>
-
-  <section class="panel">
-    <h2>Configura tu análisis</h2>
-
-    <div class="modes">
-      <button type="button" class="active" data-mode="binarias">Opciones binarias</button>
-      <button type="button" data-mode="forex">Forex</button>
-    </div>
-
-    <label for="asset">Mercado / activo</label>
-    <select id="asset">
-      <option value="EUR/USD">EUR/USD</option>
-      <option value="GBP/USD">GBP/USD</option>
-      <option value="USD/JPY">USD/JPY</option>
-      <option value="GBP/JPY">GBP/JPY</option>
-      <option value="AUD/USD">AUD/USD</option>
-      <option value="USD/CAD">USD/CAD</option>
-      <option value="EUR/JPY">EUR/JPY</option>
-      <option value="EUR/GBP">EUR/GBP</option>
-      <option value="NZD/USD">NZD/USD</option>
-    </select>
-
-    <div class="field-row">
-      <div>
-        <label for="timeframe">Temporalidad del gráfico</label>
-        <div class="units">
-          <input id="timeframe" type="number" min="1" value="1">
-          <select id="timeframeUnit">
-            <option value="minutes">Minutos</option>
-            <option value="seconds">Segundos</option>
-          </select>
-        </div>
+  <main>
+    <div class="toolbar">
+      <div class="field">
+        <label for="symbol">PAR DE DIVISAS</label>
+        <select id="symbol">
+          <option>EUR/USD</option>
+          <option>GBP/USD</option>
+          <option>USD/JPY</option>
+          <option>USD/CHF</option>
+          <option>AUD/USD</option>
+          <option>USD/CAD</option>
+          <option>NZD/USD</option>
+          <option>EUR/GBP</option>
+          <option>EUR/JPY</option>
+          <option>GBP/JPY</option>
+          <option>EUR/CHF</option>
+          <option>AUD/JPY</option>
+          <option>GBP/CHF</option>
+          <option>EUR/AUD</option>
+          <option>EUR/CAD</option>
+          <option>GBP/CAD</option>
+          <option>AUD/CAD</option>
+          <option>CAD/JPY</option>
+          <option>CHF/JPY</option>
+          <option>NZD/JPY</option>
+        </select>
       </div>
-      <div id="expiryField">
-        <label for="expiry">Vencimiento de la operación</label>
-        <div class="units">
-          <input id="expiry" type="number" min="1" value="1">
-          <select id="expiryUnit">
-            <option value="minutes">Minutos</option>
-            <option value="seconds">Segundos</option>
-          </select>
-        </div>
-      </div>
-    </div>
 
-    <label for="language">Idioma / Language</label>
-    <select id="language">
-      <option value="es">Español</option>
-      <option value="en">English</option>
-      <option value="fr">Français</option>
-      <option value="pt">Português</option>
-      <option value="de">Deutsch</option>
-      <option value="it">Italiano</option>
-      <option value="ar">العربية</option>
-      <option value="ru">Русский</option>
-      <option value="zh">中文</option>
-      <option value="ja">日本語</option>
-      <option value="ko">한국어</option>
-      <option value="tr">Türkçe</option>
-      <option value="hi">हिन्दी</option>
+```
+  <div class="field">
+    <label for="interval">TEMPORALIDAD</label>
+    <select id="interval">
+      <option value="1min">1 minuto</option>
+      <option value="5min">5 minutos</option>
+      <option value="15min">15 minutos</option>
+      <option value="30min">30 minutos</option>
+      <option value="45min">45 minutos</option>
+      <option value="1h">1 hora</option>
+      <option value="2h">2 horas</option>
+      <option value="4h">4 horas</option>
+      <option value="8h">8 horas</option>
+      <option value="1day">1 día</option>
+      <option value="1week">1 semana</option>
+      <option value="1month">1 mes</option>
     </select>
+  </div>
 
-    <button class="primary" id="generate" disabled>Generar señal</button>
-  </section>
+  <div class="field">
+    <label>&nbsp;</label>
+    <button id="refresh">Actualizar gráfico</button>
+  </div>
+</div>
 
-  <section class="panel">
-    <h2>Estado del sistema</h2>
-    <div id="message" aria-live="polite">
-      Jane Bot está preparada para configurar el análisis. Falta conectar y comprobar los datos reales del mercado.
-    </div>
-  </section>
+<section class="stats">
+  <div class="stat">
+    <small>ÚLTIMO CIERRE RECIBIDO</small>
+    <strong id="price">—</strong>
+  </div>
+  <div class="stat">
+    <small>ÚLTIMA VELA</small>
+    <strong id="lastTime">—</strong>
+  </div>
+  <div class="stat">
+    <small>FUENTE DE DATOS</small>
+    <strong class="green">Twelve Data</strong>
+  </div>
+</section>
 
-  <footer>
-    Jane Bot no garantiza ganancias. Una señal solo se habilitará cuando haya datos válidos y una estrategia de análisis implementada y comprobada. No introduzcas aquí contraseñas ni credenciales de tu cuenta de trading.
-  </footer>
-</main>
+<section class="panel">
+  <div class="panel-heading">
+    <h2 id="chartTitle">EUR/USD · Velas japonesas</h2>
+    <span class="status">Hora de las velas: UTC</span>
+  </div>
+  <div id="chart"></div>
+  <div id="message">Preparando gráfico...</div>
+  <p class="note">
+    Los datos proceden de la conexión configurada en Vercel. La actualización
+    consulta nuevas velas, pero no garantiza cotizaciones instantáneas ni que
+    coincidan exactamente con las de otra plataforma. Este gráfico no genera
+    todavía señales de compra o venta.
+  </p>
+</section>
+```
 
-<script>
-  const modeButtons = document.querySelectorAll("[data-mode]");
-  const expiryField = document.getElementById("expiryField");
-  const message = document.getElementById("message");
-  let mode = "binarias";
+  </main>
 
-  modeButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      mode = button.dataset.mode;
-      modeButtons.forEach(item =>
-        item.classList.toggle("active", item === button)
-      );
-      expiryField.hidden = mode === "forex";
-      message.textContent = mode === "forex"
-        ? "Modo Forex seleccionado. Falta conectar datos reales y validar la estrategia antes de generar señales."
-        : "Modo de opciones binarias seleccionado. Falta conectar datos reales y validar la estrategia antes de generar señales.";
+  <script>
+    const symbolSelect = document.getElementById("symbol");
+    const intervalSelect = document.getElementById("interval");
+    const refreshButton = document.getElementById("refresh");
+    const connection = document.getElementById("connection");
+    const message = document.getElementById("message");
+    const price = document.getElementById("price");
+    const lastTime = document.getElementById("lastTime");
+    const chartTitle = document.getElementById("chartTitle");
+    const chartElement = document.getElementById("chart");
+
+    const chart = LightweightCharts.createChart(chartElement, {
+      layout: {
+        background: { color: "#121a2b" },
+        textColor: "#aab8d0"
+      },
+      grid: {
+        vertLines: { color: "#202b40" },
+        horzLines: { color: "#202b40" }
+      },
+      rightPriceScale: { borderColor: "#26334b" },
+      timeScale: {
+        borderColor: "#26334b",
+        timeVisible: true,
+        secondsVisible: false
+      },
+      crosshair: { mode: 0 },
+      width: chartElement.clientWidth,
+      height: chartElement.clientHeight
     });
-  });
 
-  document.getElementById("generate").addEventListener("click", () => {
-    message.textContent =
-      "La generación de señales sigue bloqueada hasta que se conecte y verifique la fuente de datos reales.";
-  });
-</script>
+    const candles = chart.addCandlestickSeries({
+      upColor: "#20d6a0",
+      downColor: "#ff617c",
+      borderUpColor: "#20d6a0",
+      borderDownColor: "#ff617c",
+      wickUpColor: "#20d6a0",
+      wickDownColor: "#ff617c"
+    });
+
+    new ResizeObserver(() => {
+      chart.applyOptions({
+        width: chartElement.clientWidth,
+        height: chartElement.clientHeight
+      });
+    }).observe(chartElement);
+
+    function formatPrice(value) {
+      return Number(value).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6
+      });
+    }
+
+    async function loadCandles() {
+      const symbol = symbolSelect.value;
+      const interval = intervalSelect.value;
+
+      refreshButton.disabled = true;
+      connection.textContent = "● Conectando...";
+      message.textContent = "Solicitando datos al servidor...";
+      chartTitle.textContent = symbol + " · Velas japonesas (" + interval + ")";
+
+      try {
+        const url = "/api/market?symbol=" +
+          encodeURIComponent(symbol) +
+          "&interval=" + encodeURIComponent(interval) +
+          "&_=" + Date.now();
+
+        const response = await fetch(url, { cache: "no-store" });
+        const data = await response.json();
+
+        if (!response.ok || !Array.isArray(data.values)) {
+          throw new Error(data.detail || data.error || "No se recibieron velas válidas.");
+        }
+
+        const rows = data.values
+          .map(row => ({
+            time: Math.floor(Date.parse(row.datetime + "Z") / 1000),
+            open: Number(row.open),
+            high: Number(row.high),
+            low: Number(row.low),
+            close: Number(row.close)
+          }))
+          .filter(row =>
+            Number.isFinite(row.time) &&
+            Number.isFinite(row.open) &&
+            Number.isFinite(row.high) &&
+            Number.isFinite(row.low) &&
+            Number.isFinite(row.close)
+          )
+          .sort((a, b) => a.time - b.time);
+
+        if (!rows.length) {
+          throw new Error("El proveedor no devolvió velas utilizables.");
+        }
+
+        candles.setData(rows);
+        chart.timeScale().fitContent();
+
+        const latest = rows[rows.length - 1];
+        price.textContent = formatPrice(latest.close);
+        lastTime.textContent = new Date(latest.time * 1000).toISOString()
+          .replace("T", " ").slice(0, 16);
+
+        connection.textContent = "● Conectado";
+        connection.style.color = "#20d6a0";
+        message.textContent = rows.length +
+          " velas recibidas correctamente. Última vela: " +
+          lastTime.textContent + " UTC.";
+      } catch (error) {
+        connection.textContent = "● Error de conexión";
+        connection.style.color = "#ff617c";
+        message.textContent = "No se pudo actualizar el gráfico: " + error.message;
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+
+    refreshButton.addEventListener("click", loadCandles);
+    symbolSelect.addEventListener("change", loadCandles);
+    intervalSelect.addEventListener("change", loadCandles);
+
+    loadCandles();
+    setInterval(loadCandles, 60000);
+  </script>
+
 </body>
 </html>

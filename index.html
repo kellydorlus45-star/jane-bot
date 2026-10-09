@@ -1,695 +1,749 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Jane Bot — Trading Terminal</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080808">
+<title>JANE BOT — Trading Signals</title>
 <style>
-:root{
---bg:#07090d;--panel:#0d1118;--line:#202936;
---text:#eef2f7;--muted:#8b96a7;--gold:#d7ad55;
---green:#35c98a;--red:#ef5b68
+:root {
+  --bg:#080808;
+  --panel:#141414;
+  --line:#303030;
+  --gold:#e3b84f;
+  --text:#f5f5f5;
+  --muted:#999;
+  --green:#39dc8a;
+  --red:#ff626d;
 }
-*{box-sizing:border-box}
-body{
-margin:0;background:radial-gradient(circle at 75% -10%,#1a2330 0,#07090d 43%);
-color:var(--text);font:14px Inter,system-ui,sans-serif
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:radial-gradient(circle at top,#211a0b,#080808 45%);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
 }
-.app{min-height:100vh;display:grid;grid-template-columns:230px 1fr}
-.side{border-right:1px solid var(--line);background:#090c11;padding:22px 14px;display:flex;flex-direction:column}
-.brand{font-size:20px;font-weight:850;margin:4px 9px 30px;display:flex;gap:10px;align-items:center}
-.logo{width:34px;height:34px;border:1px solid #6f5929;border-radius:10px;display:grid;place-items:center;color:var(--gold);background:#15120b}
-.nav{display:grid;gap:7px}
-.nav button{border:1px solid transparent;background:transparent;color:var(--muted);text-align:left;padding:12px;border-radius:8px;cursor:pointer}
-.nav button.active,.nav button:hover{background:#121821;border-color:var(--line);color:#fff}
-.status{margin-top:auto;border:1px solid var(--line);border-radius:11px;padding:13px;background:#0d1219;font-size:12px}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#707987;margin-right:7px}
-.dot.live{background:var(--green);box-shadow:0 0 12px var(--green)}
-.dot.bad{background:var(--red)}
-.top{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
-.top h1{font-size:16px;margin:0}
-.top small{color:var(--muted)}
-.content{padding:20px;max-width:1500px;margin:auto;width:100%}
-.modes{display:flex;gap:7px;margin-bottom:15px}
-.modes button{padding:10px 19px;border-radius:8px;border:1px solid var(--line);background:#0e141c;color:var(--muted);font-weight:700;cursor:pointer}
-.modes button.active{background:#19150d;color:#f1d287;border-color:#715b2e}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 315px;gap:15px}
-.card{background:linear-gradient(180deg,#0e141c,#0b1016);border:1px solid var(--line);border-radius:11px;overflow:hidden}
-.controls{display:grid;grid-template-columns:1.3fr .75fr .75fr auto;gap:9px;padding:13px;border-bottom:1px solid var(--line)}
-label{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
-select{width:100%;padding:10px;border-radius:7px;border:1px solid #293341;background:#080c11;color:#fff;outline:0}
-.primary{border:0;border-radius:7px;padding:0 18px;background:var(--gold);font-weight:850;color:#111;cursor:pointer}
-.primary:disabled{opacity:.35;cursor:not-allowed}
-.chartbox{height:455px;position:relative;background:#090d12}
-.head{position:absolute;z-index:2;left:14px;right:14px;top:11px;display:flex;justify-content:space-between;color:var(--muted);font-size:12px;pointer-events:none}
-.chart{width:100%;height:100%;display:block}
-.empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#758094;padding:20px;pointer-events:none}
-.empty strong{display:block;color:#d4dae3;margin-bottom:5px}
-.bottom{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px}
-.title{padding:13px 15px;border-bottom:1px solid var(--line);font-weight:750}
-.signal{padding:20px;min-height:175px}
-.direction{font-size:40px;font-weight:900;overflow-wrap:anywhere}
-.wait{color:#aeb8c7}.up{color:var(--green)}.down{color:var(--red)}
-.meta{display:flex;gap:15px;flex-wrap:wrap;color:var(--muted);font-size:11px;margin-top:9px}
-.reason{color:#b9c2cf;line-height:1.55;margin-top:14px}
-.log{padding:12px 14px;height:174px;overflow:auto;font:11px ui-monospace,monospace;color:#9ca8b8;white-space:pre-wrap}
-.note{border-top:1px solid var(--line);padding:10px 13px;color:#8d98a9;font-size:10px;line-height:1.5}
-.markets{max-height:455px;overflow:auto}
-.market{padding:11px 13px;border-bottom:1px solid #171e28;display:flex;justify-content:space-between;gap:10px;cursor:pointer}
-.market:hover{background:#121821}
-.market.active{background:#17140e}
-.sub{font-size:10px;color:var(--muted);margin-top:3px}
-.price{font-variant-numeric:tabular-nums;color:#dce2ea}
-@media(max-width:900px){
-.app{grid-template-columns:1fr}.side{display:none}
-.layout{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}
-.controls{grid-template-columns:1fr 1fr}.primary{min-height:41px}
-.chartbox{height:390px}
+button,select { font:inherit; }
+button { cursor:pointer; }
+.app { max-width:1150px;margin:auto;padding:18px; }
+header {
+  display:flex;justify-content:space-between;
+  align-items:center;gap:12px;margin-bottom:18px;
+}
+.brand { display:flex;align-items:center;gap:12px; }
+.logo {
+  width:46px;height:46px;display:grid;place-items:center;
+  border:1px solid var(--gold);border-radius:13px;
+  color:var(--gold);font-size:24px;font-weight:900;
+}
+h1 { font-size:23px;letter-spacing:3px;margin:0; }
+header p { color:var(--muted);font-size:12px;margin:4px 0; }
+.status-pill {
+  border:1px solid #333;border-radius:30px;
+  padding:9px 12px;font-size:11px;color:#ccc;
+}
+.layout { display:grid;grid-template-columns:340px 1fr;gap:16px; }
+.card {
+  border:1px solid var(--line);border-radius:17px;
+  padding:17px;background:linear-gradient(145deg,#191919,#101010);
+  margin-bottom:16px;
+}
+h2 { font-size:15px;margin:0 0 15px; }
+.label {
+  color:var(--muted);font-size:11px;font-weight:bold;
+  letter-spacing:1px;margin-bottom:8px;
+}
+.field { margin-bottom:15px; }
+.mode,.tfgrid { display:grid;gap:7px; }
+.mode { grid-template-columns:1fr 1fr;margin-bottom:17px; }
+.tfgrid { grid-template-columns:repeat(3,1fr); }
+.mode button,.tf {
+  padding:11px 5px;border-radius:10px;
+  border:1px solid #383838;background:#171717;color:#aaa;
+  font-weight:bold;
+}
+.mode button.active,.tf.active {
+  border-color:var(--gold);background:#251d0b;color:#ffe19a;
+}
+select {
+  width:100%;padding:12px;border-radius:10px;
+  background:#090909;color:white;border:1px solid #383838;
+}
+.generate {
+  width:100%;padding:15px;border:0;border-radius:12px;
+  background:linear-gradient(135deg,#f6dc83,#d6a63b);
+  color:#111;font-weight:900;
+}
+.generate:disabled { opacity:.6;cursor:wait; }
+.status { color:#aaa;text-align:center;font-size:12px;line-height:1.5;margin-top:12px; }
+.note { color:#888;font-size:10px;line-height:1.6;margin-top:12px; }
+.empty {
+  min-height:380px;display:grid;place-items:center;
+  text-align:center;color:#999;border:1px dashed #333;
+  border-radius:13px;padding:25px;
+}
+.empty strong { display:block;color:var(--gold);font-size:22px;margin-bottom:10px; }
+.hidden { display:none!important; }
+.signal-head { display:flex;justify-content:space-between;gap:10px; }
+.pill { border:1px solid #383838;padding:7px 9px;border-radius:20px;font-size:10px;color:#bbb; }
+.direction { font-size:46px;font-weight:900;margin:12px 0; }
+.buy { color:var(--green); }
+.sell { color:var(--red); }
+.neutral { color:var(--gold); }
+.subline { color:#aaa;font-size:12px; }
+.score { margin-top:15px;padding:13px;background:#0b0b0b;border:1px solid #292929;border-radius:12px; }
+.score-line { display:flex;justify-content:space-between;font-size:12px;margin-bottom:9px; }
+.score-line b { font-size:18px; }
+.bar { height:8px;background:#292929;border-radius:20px;overflow:hidden; }
+.bar span { display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));transition:width .5s; }
+.details { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px; }
+.detail { padding:12px;background:#0b0b0b;border:1px solid #292929;border-radius:11px; }
+.detail span { display:block;color:#888;font-size:10px;text-transform:uppercase; }
+.detail b { display:block;margin-top:5px;font-size:14px;overflow-wrap:anywhere; }
+.reasons { margin-top:10px;padding:13px;background:#0b0b0b;border:1px solid #292929;border-radius:11px; }
+.reasons h3 { color:var(--gold);font-size:12px;margin:0 0 10px; }
+.reason { color:#bbb;font-size:12px;margin:8px 0;line-height:1.5; }
+.reason:before { content:"✓ ";color:var(--green); }
+.warning { font-size:10px;color:#999;line-height:1.6;margin-top:12px; }
+.actions { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px; }
+.actions button {
+  padding:10px;border-radius:10px;background:#151515;
+  border:1px solid #333;color:#ddd;font-weight:bold;
+}
+.actions .win { color:var(--green); }
+.actions .loss { color:var(--red); }
+.lower { display:grid;grid-template-columns:1.4fr 1fr;gap:16px; }
+.history { max-height:400px;overflow:auto; }
+.hist-row {
+  display:grid;grid-template-columns:65px 1fr auto;
+  gap:8px;align-items:center;padding:11px 0;
+  border-bottom:1px solid #292929;font-size:12px;
+}
+.hist-row small { display:block;color:#888;margin-top:5px; }
+.tag { font-size:10px;font-weight:bold;padding:6px;border-radius:7px;background:#251e0b;color:var(--gold); }
+.tag.win { background:#102519;color:var(--green); }
+.tag.loss { background:#2a1013;color:var(--red); }
+.stats { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+.stat { padding:13px;background:#0b0b0b;border:1px solid #292929;border-radius:11px; }
+.stat span { display:block;color:#888;font-size:10px; }
+.stat b { display:block;font-size:23px;margin-top:6px; }
+.clear { width:100%;padding:9px;margin-top:10px;background:#111;border:1px solid #333;border-radius:9px;color:#aaa; }
+@media(max-width:780px) {
+  .layout,.lower { grid-template-columns:1fr; }
+  .app { padding:12px; }
+  .empty { min-height:250px; }
+  h1 { font-size:19px; }
+}
+@media(max-width:420px) {
+  .tfgrid { grid-template-columns:repeat(2,1fr); }
+  .direction { font-size:39px; }
 }
 </style>
 </head>
 <body>
 <div class="app">
-<aside class="side">
-  <div class="brand"><div class="logo">J</div>Jane Bot</div>
-  <div class="nav">
-    <button class="active" id="terminalNav">Terminal</button>
-    <button id="history">Signal history</button>
-    <button id="ai">AI assistant</button>
+<header>
+  <div class="brand">
+    <div class="logo">J</div>
+    <div><h1>JANE BOT</h1><p>Análisis de mercado · Twelve Data</p></div>
   </div>
-  <div class="status">
-    <div><span id="dot" class="dot"></span><b id="status">CONNECTING</b></div>
-    <div id="detail" style="color:var(--muted);margin-top:7px">Connecting to market data…</div>
-  </div>
-</aside>
-
-<main>
-<header class="top">
-  <h1>Trading signal terminal</h1>
-  <small>LIVE MARKET DATA · NO AUTOMATIC TRADES</small>
+  <div class="status-pill" id="connection">ESPERANDO DATOS</div>
 </header>
 
-<section class="content">
-<div class="modes">
-  <button id="forex" class="active">FOREX</button>
-  <button id="binary">BINARY</button>
-</div>
-
-<div class="layout">
-<section>
-<div class="card">
-<div class="controls">
-  <div>
-    <label>Market</label>
-    <select id="market"><option>Loading real markets…</option></select>
+<main class="layout">
+<section class="card">
+  <h2>Crear señal</h2>
+  <div class="label">Modo</div>
+  <div class="mode">
+    <button id="forexBtn" class="active">FOREX</button>
+    <button id="binaryBtn">BINARIA</button>
   </div>
-  <div id="tfbox">
-    <label>Timeframe</label>
-    <select id="tf">
-      <option value="60">1M</option>
-      <option value="300" selected>5M</option>
-      <option value="900">15M</option>
-      <option value="1800">30M</option>
-      <option value="3600">1H</option>
-      <option value="14400">4H</option>
-      <option value="86400">1D</option>
+
+  <div class="field">
+    <div class="label">Par de divisas</div>
+    <select id="asset">
+      <option>EUR/USD</option>
+      <option>GBP/USD</option>
+      <option>USD/JPY</option>
+      <option>AUD/USD</option>
+      <option>USD/CAD</option>
+      <option>USD/CHF</option>
+      <option>NZD/USD</option>
+      <option>EUR/GBP</option>
+      <option>EUR/JPY</option>
+      <option>GBP/JPY</option>
+      <option>AUD/JPY</option>
+      <option>EUR/AUD</option>
     </select>
   </div>
-  <div id="exbox" style="display:none">
-    <label>Expiration</label>
-    <select id="exp">
-      <option value="3">3 sec</option>
-      <option value="5">5 sec</option>
-      <option value="10">10 sec</option>
-      <option value="15">15 sec</option>
-      <option value="30">30 sec</option>
-      <option value="60">1 min</option>
-      <option value="300">5 min</option>
-      <option value="900">15 min</option>
-      <option value="3600">1 hour</option>
-      <option value="86400">1 day</option>
-    </select>
-  </div>
-  <div style="display:flex;align-items:end">
-    <button id="generate" class="primary" disabled>GENERATE SIGNAL</button>
-  </div>
-</div>
 
-<div class="chartbox">
-  <div class="head">
-    <span id="label">Waiting for real candles</span>
-    <span id="price">—</span>
+  <div class="field">
+    <div class="label">Vela / Time frame</div>
+    <div class="tfgrid" id="tfgrid"></div>
   </div>
-  <canvas id="canvas" class="chart"></canvas>
-  <div id="empty" class="empty">
-    <div><strong>REAL DATA REQUIRED</strong>Choose a market and wait for real candles.</div>
-  </div>
-</div>
-</div>
 
-<div class="bottom">
-<div class="card">
-  <div class="title">Current signal</div>
-  <div class="signal">
-    <div id="direction" class="direction wait">WAIT</div>
-    <div class="meta">
-      <span id="score">Score —</span>
-      <span id="entry">Reference —</span>
-      <span id="duration">—</span>
-    </div>
-    <div id="reason" class="reason">Waiting for enough real market data.</div>
+  <div class="field hidden" id="durationField">
+    <div class="label">Duración de referencia</div>
+    <div class="tfgrid" id="durationGrid"></div>
   </div>
-</div>
 
-<div class="card">
-  <div class="title">System log</div>
-  <div id="log" class="log">Jane Bot starting…</div>
+  <button class="generate" id="generateBtn">⚡ GENERAR SEÑAL</button>
+  <div class="status" id="status">Selecciona un par y genera una señal.</div>
   <div class="note">
-    Analytical signals only. No trade is executed and no broker account is connected.
-    Live data availability depends on the provider.
+    El análisis es informativo. No ejecuta operaciones. El score no es una
+    probabilidad garantizada. Los pares de divisas de Twelve Data no equivalen
+    a los mercados OTC de un bróker.
   </div>
-</div>
-</div>
 </section>
 
-<aside class="card">
-  <div class="title">Loaded Forex markets <span id="count" style="float:right;color:var(--muted);font-weight:400">0</span></div>
-  <div id="markets" class="markets"><div class="empty">Loading markets…</div></div>
-  <div class="note">Market list supplied by the live data provider.</div>
-</aside>
-</div>
+<section class="card">
+  <div class="empty" id="empty">
+    <div><strong>JANE BOT</strong>La señal aparecerá aquí cuando se reciban suficientes velas reales.</div>
+  </div>
+  <div id="result" class="hidden"></div>
 </section>
 </main>
+
+<section class="lower">
+  <div class="card">
+    <h2>Historial de señales</h2>
+    <div id="history" class="history"></div>
+    <button class="clear" id="clearHistory">Borrar historial</button>
+  </div>
+  <div class="card">
+    <h2>Estadísticas</h2>
+    <div id="stats" class="stats"></div>
+  </div>
+</section>
 </div>
 
 <script>
 'use strict';
 
-const URL = 'wss://api.derivws.com/trading/v1/options/ws/public';
+/*
+  CONFIGURACIÓN:
+  Este código espera que el backend esté publicado en:
+  api/candles.js
 
-let ws = null;
-let requestId = 1;
-let symbols = [];
-let selected = '';
-let candles = [];
-let lastPrice = 0;
-let mode = 'forex';
-let ready = false;
-let reconnectTimer = null;
-let reconnectDelay = 2000;
-let activeSubscription = null;
-let connectionGeneration = 0;
+  URL utilizada:
+  /api/candles?symbol=EUR%2FUSD&interval=1min
+
+  Configura TWELVEDATA_API_KEY en las variables de entorno de Vercel.
+  No escribas tu clave secreta en este archivo.
+*/
+
+const API_ENDPOINT = '/api/candles';
+
+const TIMEFRAMES = [
+  {label:'1 min',api:'1min'},
+  {label:'5 min',api:'5min'},
+  {label:'15 min',api:'15min'},
+  {label:'30 min',api:'30min'},
+  {label:'45 min',api:'45min'},
+  {label:'1 hora',api:'1h'},
+  {label:'2 horas',api:'2h'},
+  {label:'4 horas',api:'4h'},
+  {label:'8 horas',api:'8h'},
+  {label:'1 día',api:'1day'},
+  {label:'1 semana',api:'1week'},
+  {label:'1 mes',api:'1month'}
+];
+
+const DURATIONS = [
+  {label:'1 min',seconds:60},
+  {label:'5 min',seconds:300},
+  {label:'15 min',seconds:900},
+  {label:'30 min',seconds:1800}
+];
 
 const $ = id => document.getElementById(id);
 
-function log(message) {
-  const box = $('log');
-  box.textContent += '\n' + new Date().toLocaleTimeString() + '  ' + message;
-  box.scrollTop = box.scrollHeight;
+let mode = 'forex';
+let selectedTf = '1min';
+let selectedDuration = 60;
+let history = [];
+
+try {
+  const saved = JSON.parse(localStorage.getItem('janeHistoryV10') || '[]');
+  if (Array.isArray(saved)) history = saved;
+} catch (_) {
+  history = [];
 }
 
-function status(kind, title, detail) {
-  $('status').textContent = title;
-  $('detail').textContent = detail;
-  $('dot').className = 'dot ' + kind;
+let currentId = null;
+
+function formatPrice(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '—';
+  if (Math.abs(n) >= 100) return n.toFixed(2);
+  if (Math.abs(n) >= 10) return n.toFixed(3);
+  return n.toFixed(5);
 }
 
-function send(payload) {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return false;
-
-  payload.req_id = requestId++;
-  ws.send(JSON.stringify(payload));
-  return true;
+function formatTime(timestamp) {
+  return new Intl.DateTimeFormat('es-BS', {
+    timeZone: 'America/Nassau',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  }).format(new Date(timestamp));
 }
 
-function connect() {
-  if (ws && (ws.readyState === WebSocket.OPEN ||
-             ws.readyState === WebSocket.CONNECTING)) return;
-
-  clearTimeout(reconnectTimer);
-  const generation = ++connectionGeneration;
-
-  status('', 'CONNECTING', 'Opening public market-data connection…');
-
-  try {
-    ws = new WebSocket(URL);
-  } catch (error) {
-    scheduleReconnect();
-    return;
-  }
-
-  ws.onopen = () => {
-    if (generation !== connectionGeneration) return;
-
-    reconnectDelay = 2000;
-    status('live', 'CONNECTED', 'Connection established; requesting markets.');
-    log('WebSocket connected.');
-    send({ active_symbols: 'brief', product_type: 'basic' });
-  };
-
-  ws.onerror = () => {
-    if (generation !== connectionGeneration) return;
-    status('bad', 'CONNECTION ERROR', 'Could not retrieve market data.');
-    $('generate').disabled = true;
-    log('Connection error. Check the provider and network.');
-  };
-
-  ws.onclose = () => {
-    if (generation !== connectionGeneration) return;
-
-    ready = false;
-    $('generate').disabled = true;
-    status('bad', 'OFFLINE', 'Attempting to reconnect.');
-    log('Connection closed.');
-    scheduleReconnect();
-  };
-
-  ws.onmessage = event => {
-    if (generation !== connectionGeneration) return;
-
-    try {
-      handle(JSON.parse(event.data));
-    } catch (error) {
-      log('Could not process the server response.');
-    }
-  };
+function setStatus(message, error = false) {
+  $('status').textContent = message;
+  $('connection').textContent = error ? 'ERROR DE DATOS' : 'LISTO PARA ANALIZAR';
 }
 
-function scheduleReconnect() {
-  clearTimeout(reconnectTimer);
-  reconnectTimer = setTimeout(() => {
-    if (!ws || ws.readyState === WebSocket.CLOSED) connect();
-  }, reconnectDelay);
-
-  reconnectDelay = Math.min(reconnectDelay * 1.5, 15000);
+function setMode(nextMode) {
+  mode = nextMode;
+  $('forexBtn').classList.toggle('active', mode === 'forex');
+  $('binaryBtn').classList.toggle('active', mode === 'binary');
+  $('durationField').classList.toggle('hidden', mode !== 'binary');
+  clearSignal();
 }
 
-function handle(message) {
-  if (message.error) {
-    log('Provider: ' + (message.error.message || 'request failed'));
-    status('bad', 'API ERROR', message.error.message || 'Market data error');
-    return;
-  }
-
-  if (message.msg_type === 'active_symbols' || message.active_symbols) {
-    symbols = (message.active_symbols || []).filter(item =>
-      item && item.symbol &&
-      /forex/i.test(item.market || '')
-    );
-
-    renderMarkets();
-
-    if (symbols.length) {
-      const initial = symbols.find(s => /EUR\/USD/i.test(s.display_name || ''))
-        || symbols[0];
-      choose(initial.symbol);
-    } else {
-      log('No Forex symbols were returned by the provider.');
-      status('bad', 'NO MARKETS', 'The provider returned no Forex symbols.');
-    }
-  }
-
-  if (message.msg_type === 'history' || message.history) {
-    if (!message.history) return;
-
-    candles = (message.history.candles || []).map(c => ({
-      t: Number(c.epoch),
-      o: Number(c.open),
-      h: Number(c.high),
-      l: Number(c.low),
-      c: Number(c.close)
-    })).filter(c =>
-      Number.isFinite(c.t) &&
-      Number.isFinite(c.o) &&
-      Number.isFinite(c.h) &&
-      Number.isFinite(c.l) &&
-      Number.isFinite(c.c)
-    );
-
-    candles.sort((a, b) => a.t - b.t);
-
-    render();
-    checkReady();
-    log('Received ' + candles.length + ' historical candles.');
-  }
-
-  if (message.msg_type === 'tick' && message.tick) {
-    const tick = message.tick;
-    const quote = Number(tick.quote);
-
-    if (!Number.isFinite(quote)) return;
-
-    lastPrice = quote;
-    $('price').textContent = quote;
-    updateCandle(Number(tick.epoch), quote);
-  }
-}
-
-function renderMarkets() {
-  $('market').innerHTML = symbols.map(s =>
-    '<option value="' + escapeHTML(s.symbol) + '">' +
-    escapeHTML(s.display_name || s.symbol) + '</option>'
+function drawButtons() {
+  $('tfgrid').innerHTML = TIMEFRAMES.map(t =>
+    `<button type="button" class="tf ${t.api === selectedTf ? 'active' : ''}" data-tf="${t.api}">${t.label}</button>`
   ).join('');
 
-  $('count').textContent = String(symbols.length);
+  $('durationGrid').innerHTML = DURATIONS.map(d =>
+    `<button type="button" class="tf ${d.seconds === selectedDuration ? 'active' : ''}" data-duration="${d.seconds}">${d.label}</button>`
+  ).join('');
 
-  $('markets').innerHTML = symbols.map(s => `
-    <div class="market ${s.symbol === selected ? 'active' : ''}"
-         data-symbol="${escapeHTML(s.symbol)}">
-      <div>
-        <b>${escapeHTML(s.display_name || s.symbol)}</b>
-        <div class="sub">${escapeHTML(s.symbol)}</div>
-      </div>
-      <span class="price">${s.symbol === selected && lastPrice ? lastPrice : '—'}</span>
-    </div>
-  `).join('') || '<div class="empty">No markets available.</div>';
-
-  document.querySelectorAll('.market').forEach(item => {
-    item.addEventListener('click', () => choose(item.dataset.symbol));
+  document.querySelectorAll('[data-tf]').forEach(button => {
+    button.addEventListener('click', () => {
+      selectedTf = button.dataset.tf;
+      drawButtons();
+      clearSignal();
+    });
   });
 
-  if (selected) $('market').value = selected;
-}
-
-function choose(symbol) {
-  if (!symbol) return;
-
-  selected = symbol;
-  candles = [];
-  lastPrice = 0;
-  ready = false;
-  activeSubscription = null;
-
-  $('market').value = symbol;
-  $('price').textContent = '—';
-  $('generate').disabled = true;
-  $('empty').style.display = 'grid';
-  $('label').textContent = symbol + ' · loading candles…';
-
-  renderMarkets();
-
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    send({
-      ticks_history: symbol,
-      style: 'candles',
-      granularity: Number($('tf').value),
-      count: 120,
-      end: 'latest'
+  document.querySelectorAll('[data-duration]').forEach(button => {
+    button.addEventListener('click', () => {
+      selectedDuration = Number(button.dataset.duration);
+      drawButtons();
+      clearSignal();
     });
-
-    send({ ticks: symbol, subscribe: 1 });
-    activeSubscription = symbol;
-    log('Requested real history for ' + symbol + '.');
-  } else {
-    log('Waiting for market-data connection.');
-  }
+  });
 }
 
-function updateCandle(epoch, price) {
-  if (!candles.length || !Number.isFinite(epoch)) return;
+function clearSignal() {
+  $('empty').classList.remove('hidden');
+  $('result').classList.add('hidden');
+  $('result').innerHTML = '';
+  setStatus('Listo. Selecciona el par y pulsa GENERAR SEÑAL.');
+}
 
-  const timeframe = Number($('tf').value);
-  const bucket = Math.floor(epoch / timeframe) * timeframe;
-  const current = candles[candles.length - 1];
+function parseCandleTime(value) {
+  if (typeof value === 'number') {
+    return value < 1e12 ? value * 1000 : value;
+  }
 
-  if (bucket < current.t) return;
+  const text = String(value || '').trim();
+  if (!text) return NaN;
 
-  if (bucket > current.t) {
-    candles.push({
-      t: bucket,
-      o: current.c,
-      h: price,
-      l: price,
-      c: price
+  // El backend solicita timezone=UTC.
+  const iso = /Z$|[+-]\d\d:\d\d$/.test(text)
+    ? text
+    : text.replace(' ', 'T') + 'Z';
+
+  return Date.parse(iso);
+}
+
+async function getCandles(symbol, interval) {
+  const url = API_ENDPOINT
+    + '?symbol=' + encodeURIComponent(symbol)
+    + '&interval=' + encodeURIComponent(interval);
+
+  let response;
+
+  try {
+    response = await fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {'Accept':'application/json'}
     });
-
-    if (candles.length > 140) candles.shift();
-  } else {
-    current.c = price;
-    current.h = Math.max(current.h, price);
-    current.l = Math.min(current.l, price);
+  } catch (_) {
+    throw new Error(
+      'No se pudo conectar con /api/candles. Comprueba que el backend esté publicado en Vercel.'
+    );
   }
 
-  render();
-  checkReady();
-}
+  let data;
 
-function checkReady() {
-  ready = Boolean(selected && candles.length >= 30);
-
-  $('generate').disabled = !ready;
-  $('empty').style.display = ready ? 'none' : 'grid';
-
-  if (ready) {
-    $('label').textContent = selected + ' · ' +
-      (mode === 'forex'
-        ? $('tf').selectedOptions[0].textContent
-        : 'BINARY');
+  try {
+    data = await response.json();
+  } catch (_) {
+    throw new Error(
+      'El backend no devolvió JSON. Revisa la ruta /api/candles.'
+    );
   }
+
+  if (!response.ok) {
+    throw new Error(data.detail || data.error || ('Error HTTP ' + response.status));
+  }
+
+  if (!Array.isArray(data.values)) {
+    throw new Error(data.error || 'La respuesta no contiene velas válidas.');
+  }
+
+  const candles = data.values.map(v => ({
+    time: parseCandleTime(v.datetime || v.time || v.timestamp),
+    open: Number(v.open),
+    high: Number(v.high),
+    low: Number(v.low),
+    close: Number(v.close)
+  })).filter(c =>
+    Number.isFinite(c.time) &&
+    [c.open,c.high,c.low,c.close].every(Number.isFinite)
+  );
+
+  // Twelve Data normalmente entrega las velas de más recientes a más antiguas.
+  candles.sort((a,b) => a.time - b.time);
+
+  return candles.filter((c,i,arr) =>
+    i === 0 || c.time !== arr[i-1].time
+  );
 }
 
 function ema(values, period) {
-  if (!values.length) return [];
-
+  if (values.length < period) return NaN;
   const multiplier = 2 / (period + 1);
-  const result = [values[0]];
+  let result = values[0];
 
   for (let i = 1; i < values.length; i++) {
-    result.push(values[i] * multiplier +
-      result[i - 1] * (1 - multiplier));
+    result = values[i] * multiplier + result * (1 - multiplier);
   }
 
   return result;
 }
 
-function calculateRSI(values, period = 14) {
-  if (values.length <= period) return 50;
+function rsi(values, period = 14) {
+  if (values.length <= period) return NaN;
 
   let gains = 0;
   let losses = 0;
 
   for (let i = values.length - period; i < values.length; i++) {
-    const difference = values[i] - values[i - 1];
-    gains += Math.max(0, difference);
-    losses += Math.max(0, -difference);
+    const change = values[i] - values[i-1];
+    if (change > 0) gains += change;
+    else losses -= change;
   }
 
-  if (losses === 0) return gains === 0 ? 50 : 100;
+  if (losses === 0) return 100;
 
-  const relativeStrength = gains / losses;
-  return 100 - 100 / (1 + relativeStrength);
+  const rs = gains / losses;
+  return 100 - (100 / (1 + rs));
 }
 
-function generateSignal() {
-  if (!ready || candles.length < 30) {
-    log('Signal unavailable: insufficient real candles.');
-    return;
+function calculateATR(candles, period = 14) {
+  if (candles.length < period + 1) return NaN;
+
+  const ranges = [];
+
+  for (let i = 1; i < candles.length; i++) {
+    const current = candles[i];
+    const previousClose = candles[i-1].close;
+
+    ranges.push(Math.max(
+      current.high - current.low,
+      Math.abs(current.high - previousClose),
+      Math.abs(current.low - previousClose)
+    ));
   }
 
-  const closes = candles.map(c => c.c);
-  const fastEMA = ema(closes, 9).at(-1);
-  const slowEMA = ema(closes, 21).at(-1);
-  const rsi = calculateRSI(closes);
-  const candle = candles.at(-1);
+  const recent = ranges.slice(-period);
+  return recent.reduce((sum,value) => sum + value, 0) / recent.length;
+}
 
-  let score = 0;
+function analyze(candles) {
+  const closes = candles.map(c => c.close);
+  const latest = candles[candles.length - 1].close;
+
+  const ema9 = ema(closes.slice(-80), 9);
+  const ema21 = ema(closes.slice(-120), 21);
+  const rsiValue = rsi(closes, 14);
+  const atrValue = calculateATR(candles, 14);
+
+  if (![latest,ema9,ema21,rsiValue,atrValue].every(Number.isFinite)) {
+    throw new Error('Los datos no son suficientes para calcular los indicadores.');
+  }
+
+  let score = 50;
   const reasons = [];
 
-  if (fastEMA > slowEMA) {
-    score++;
-    reasons.push('EMA bullish');
-  } else if (fastEMA < slowEMA) {
-    score--;
-    reasons.push('EMA bearish');
-  }
-
-  if (rsi > 55) {
-    score++;
-    reasons.push('RSI bullish');
-  } else if (rsi < 45) {
-    score--;
-    reasons.push('RSI bearish');
+  if (latest > ema9) {
+    score += 10;
+    reasons.push('El último cierre está por encima de la EMA 9.');
   } else {
-    reasons.push('RSI neutral');
+    score -= 10;
+    reasons.push('El último cierre está por debajo de la EMA 9.');
   }
 
-  if (candle.c > candle.o) {
-    score++;
-    reasons.push('Last candle bullish');
-  } else if (candle.c < candle.o) {
-    score--;
-    reasons.push('Last candle bearish');
+  if (ema9 > ema21) {
+    score += 18;
+    reasons.push('La EMA 9 está por encima de la EMA 21: sesgo alcista.');
+  } else {
+    score -= 18;
+    reasons.push('La EMA 9 está por debajo de la EMA 21: sesgo bajista.');
   }
 
-  const range = Math.max(candle.h - candle.l, 1e-12);
-  const bodyRatio = Math.abs(candle.c - candle.o) / range;
-
-  if (bodyRatio > 0.55 && candle.c !== candle.o) {
-    score += candle.c > candle.o ? 1 : -1;
-    reasons.push('Strong candle body');
+  if (rsiValue >= 52 && rsiValue <= 68) {
+    score += 12;
+    reasons.push('El RSI acompaña el impulso alcista.');
+  } else if (rsiValue >= 32 && rsiValue <= 48) {
+    score -= 12;
+    reasons.push('El RSI acompaña el impulso bajista.');
+  } else if (rsiValue > 70) {
+    score -= 5;
+    reasons.push('RSI elevado: cuidado con posible sobrecompra.');
+  } else if (rsiValue < 30) {
+    score += 5;
+    reasons.push('RSI bajo: cuidado con posible sobreventa.');
+  } else {
+    reasons.push('El RSI no confirma una dirección fuerte.');
   }
 
-  let direction = 'WAIT';
+  const recent = candles.slice(-20);
+  const highest = Math.max(...recent.map(c => c.high));
+  const lowest = Math.min(...recent.map(c => c.low));
+  const position = (latest - lowest) / (highest - lowest || 1);
 
-  if (Math.abs(score) >= 3) {
-    if (mode === 'forex') {
-      direction = score > 0 ? 'BUY' : 'SELL';
-    } else {
-      direction = score > 0 ? 'CALL' : 'PUT';
+  if (position > 0.8) {
+    reasons.push('Precio cerca del extremo superior del rango reciente.');
+  } else if (position < 0.2) {
+    reasons.push('Precio cerca del extremo inferior del rango reciente.');
+  } else {
+    reasons.push('Precio dentro del rango reciente.');
+  }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+
+  let direction = 'NO SIGNAL';
+  if (score >= 65) direction = 'BUY';
+  if (score <= 35) direction = 'SELL';
+
+  return {
+    latest, ema9, ema21, rsiValue,
+    atrValue, score, direction, reasons
+  };
+}
+
+function timeframeLabel(api) {
+  const found = TIMEFRAMES.find(t => t.api === api);
+  return found ? found.label : api;
+}
+
+function saveHistory() {
+  try {
+    localStorage.setItem('janeHistoryV10', JSON.stringify(history));
+  } catch (_) {}
+}
+
+function renderSignal(data, symbol, interval, candleCount) {
+  const direction = mode === 'binary'
+    ? (data.direction === 'BUY' ? 'CALL'
+      : data.direction === 'SELL' ? 'PUT' : 'NO SIGNAL')
+    : data.direction;
+
+  const className = ['BUY','CALL'].includes(direction)
+    ? 'buy'
+    : ['SELL','PUT'].includes(direction) ? 'sell' : 'neutral';
+
+  currentId = (window.crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : String(Date.now());
+
+  const entry = data.latest;
+  const stopLoss = data.direction === 'BUY'
+    ? entry - 1.2 * data.atrValue
+    : entry + 1.2 * data.atrValue;
+  const takeProfit = data.direction === 'BUY'
+    ? entry + 1.8 * data.atrValue
+    : entry - 1.8 * data.atrValue;
+
+  const duration = DURATIONS.find(d => d.seconds === selectedDuration);
+  const expiration = new Date(Date.now() + selectedDuration * 1000);
+
+  const record = {
+    id: currentId,
+    time: Date.now(),
+    mode,
+    symbol,
+    direction,
+    score: data.score,
+    timeframe: timeframeLabel(interval),
+    duration: mode === 'binary' ? duration.label : null,
+    entry,
+    stopLoss: mode === 'forex' ? stopLoss : null,
+    takeProfit: mode === 'forex' ? takeProfit : null,
+    result: 'OPEN'
+  };
+
+  history.unshift(record);
+  history = history.slice(0,100);
+  saveHistory();
+  renderHistory();
+
+  $('empty').classList.add('hidden');
+  $('result').classList.remove('hidden');
+
+  $('result').innerHTML = `
+    <div class="signal-head">
+      <div>
+        <div class="pill">${mode === 'forex' ? 'FOREX' : 'BINARIA'} · ${symbol}</div>
+        <div class="direction ${className}">${direction}</div>
+        <div class="subline">Vela ${timeframeLabel(interval)} · ${formatTime(record.time)}</div>
+      </div>
+      <div class="pill">${mode === 'binary' ? 'DURACIÓN ' + duration.label : 'ANÁLISIS'}</div>
+    </div>
+
+    <div class="score">
+      <div class="score-line"><span>Score del modelo</span><b>${data.score}/100</b></div>
+      <div class="bar"><span id="scoreBar"></span></div>
+    </div>
+
+    <div class="details">
+      <div class="detail"><span>Precio más reciente</span><b>${formatPrice(data.latest)}</b></div>
+      <div class="detail"><span>Entrada de referencia</span><b>${formatPrice(entry)}</b></div>
+      ${mode === 'forex'
+        ? `<div class="detail"><span>Stop Loss estimado</span><b>${formatPrice(stopLoss)}</b></div>
+           <div class="detail"><span>Take Profit estimado</span><b>${formatPrice(takeProfit)}</b></div>`
+        : `<div class="detail"><span>Duración</span><b>${duration.label}</b></div>
+           <div class="detail"><span>Expiración orientativa</span><b>${formatTime(expiration.getTime())}</b></div>`
+      }
+      <div class="detail"><span>RSI 14</span><b>${data.rsiValue.toFixed(1)}</b></div>
+      <div class="detail"><span>EMA 9 / 21</span><b>${formatPrice(data.ema9)} / ${formatPrice(data.ema21)}</b></div>
+    </div>
+
+    <div class="reasons">
+      <h3>RAZONES DEL ANÁLISIS</h3>
+      ${data.reasons.map(reason => `<div class="reason">${reason}</div>`).join('')}
+    </div>
+
+    <div class="warning">
+      ${candleCount} velas recibidas. El score no es una probabilidad de ganar.
+      Stop Loss y Take Profit son niveles calculados, no órdenes enviadas al bróker.
+      La expiración binaria es orientativa. Jane Bot no ejecuta operaciones.
+    </div>
+
+    <div class="actions">
+      <button class="win" id="markWin">✓ Registrar WIN</button>
+      <button class="loss" id="markLoss">✕ Registrar LOSS</button>
+    </div>
+  `;
+
+  $('scoreBar').style.width = data.score + '%';
+  $('markWin').onclick = () => setResult('WIN');
+  $('markLoss').onclick = () => setResult('LOSS');
+
+  setStatus('Análisis completado. ' + candleCount + ' velas válidas recibidas.');
+}
+
+async function generateSignal() {
+  const button = $('generateBtn');
+  button.disabled = true;
+  button.textContent = 'RECIBIENDO VELAS…';
+  $('connection').textContent = 'CARGANDO DATOS';
+  setStatus('Conectando con el backend de Twelve Data…');
+
+  try {
+    const symbol = $('asset').value;
+    const interval = selectedTf;
+    const candles = await getCandles(symbol, interval);
+
+    if (candles.length < 40) {
+      throw new Error(
+        'Solo llegaron ' + candles.length +
+        ' velas. Se necesitan al menos 40. Comprueba el plan y los límites de Twelve Data.'
+      );
     }
-  }
 
-  const qualityScore = Math.min(98, 50 + Math.abs(score) * 12);
-
-  $('direction').textContent = direction;
-  $('direction').className = 'direction ' +
-    (direction === 'WAIT' ? 'wait' :
-      direction === 'BUY' || direction === 'CALL' ? 'up' : 'down');
-
-  $('score').textContent = 'Indicator score: ' + qualityScore + '/100';
-  $('entry').textContent = 'Reference: ' + candle.c;
-  $('duration').textContent = mode === 'forex'
-    ? 'Timeframe: ' + $('tf').selectedOptions[0].textContent
-    : 'Expiration: ' + $('exp').selectedOptions[0].textContent;
-
-  $('reason').textContent = direction === 'WAIT'
-    ? 'Insufficient agreement between indicators. Wait for another setup.'
-    : reasons.join(' · ');
-
-  log('Signal: ' + direction + ' | indicator score: ' +
-    score + ' | reference price: ' + candle.c);
-
-  if (direction !== 'WAIT') {
-    log('Reminder: indicator score is not a probability of profit.');
+    const data = analyze(candles);
+    renderSignal(data, symbol, interval, candles.length);
+    $('connection').textContent = 'DATOS RECIBIDOS';
+  } catch (error) {
+    $('empty').classList.remove('hidden');
+    $('result').classList.add('hidden');
+    $('connection').textContent = 'ERROR DE CONEXIÓN';
+    setStatus(error.message || 'No se pudo generar la señal.', true);
+  } finally {
+    button.disabled = false;
+    button.textContent = '⚡ GENERAR SEÑAL';
   }
 }
 
-function render() {
-  const canvas = $('canvas');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const width = canvas.clientWidth;
-  const height = canvas.clientHeight;
+function setResult(result) {
+  const item = history.find(h => h.id === currentId);
+  if (!item) return;
+  item.result = result;
+  saveHistory();
+  renderHistory();
+  setStatus('Resultado guardado: ' + result + '.');
+}
 
-  if (!width || !height) return;
+function renderHistory() {
+  const historyElement = $('history');
 
-  canvas.width = Math.round(width * dpr);
-  canvas.height = Math.round(height * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, width, height);
+  if (!history.length) {
+    historyElement.innerHTML = '<p class="note">Todavía no hay señales guardadas.</p>';
+  } else {
+    historyElement.innerHTML = history.map(item => {
+      const directionClass = ['BUY','CALL'].includes(item.direction)
+        ? 'buy'
+        : ['SELL','PUT'].includes(item.direction) ? 'sell' : 'neutral';
 
-  if (!candles.length) return;
+      const resultClass = item.result === 'WIN'
+        ? 'win' : item.result === 'LOSS' ? 'loss' : '';
 
-  const padding = { left: 58, right: 14, top: 38, bottom: 22 };
-  const visible = candles.slice(-80);
-  const count = visible.length;
-
-  const minPrice = Math.min(...visible.map(c => c.l));
-  const maxPrice = Math.max(...visible.map(c => c.h));
-  const spread = maxPrice - minPrice || Math.abs(maxPrice) * 0.001 || 1;
-
-  const high = maxPrice + spread * 0.05;
-  const low = minPrice - spread * 0.05;
-
-  const chartHeight = height - padding.top - padding.bottom;
-  const chartWidth = width - padding.left - padding.right;
-
-  const y = price => padding.top +
-    (high - price) / (high - low) * chartHeight;
-
-  const x = index => padding.left +
-    (index + 0.5) * chartWidth / count;
-
-  ctx.font = '10px system-ui';
-  ctx.lineWidth = 1;
-
-  for (let i = 0; i < 5; i++) {
-    const yy = padding.top + i * chartHeight / 4;
-    const value = high - (high - low) * i / 4;
-
-    ctx.strokeStyle = '#1c2530';
-    ctx.beginPath();
-    ctx.moveTo(padding.left, yy);
-    ctx.lineTo(width - padding.right, yy);
-    ctx.stroke();
-
-    ctx.fillStyle = '#9aa5b5';
-    ctx.fillText(value.toFixed(5), 5, yy + 3);
+      return `
+        <div class="hist-row">
+          <b class="${directionClass}">${item.direction}</b>
+          <div>
+            <b>${item.symbol}</b>
+            <small>${item.mode === 'binary' ? 'Binaria' : 'Forex'} · ${item.timeframe} · ${formatTime(item.time)} · ${item.score}/100</small>
+          </div>
+          <span class="tag ${resultClass}">${item.result}</span>
+        </div>
+      `;
+    }).join('');
   }
 
-  const candleWidth = Math.max(2, chartWidth / count * 0.58);
+  const decided = history.filter(h => h.result === 'WIN' || h.result === 'LOSS');
+  const wins = decided.filter(h => h.result === 'WIN').length;
+  const losses = decided.filter(h => h.result === 'LOSS').length;
+  const winRate = decided.length ? Math.round(wins / decided.length * 100) : 0;
+  const pending = history.filter(h => h.result === 'OPEN').length;
 
-  visible.forEach((candle, index) => {
-    const xx = x(index);
-    const bullish = candle.c >= candle.o;
-
-    ctx.strokeStyle = bullish ? '#35c98a' : '#ef5b68';
-    ctx.fillStyle = ctx.strokeStyle;
-
-    ctx.beginPath();
-    ctx.moveTo(xx, y(candle.h));
-    ctx.lineTo(xx, y(candle.l));
-    ctx.stroke();
-
-    const top = Math.min(y(candle.o), y(candle.c));
-    const bodyHeight = Math.max(1, Math.abs(y(candle.o) - y(candle.c)));
-
-    ctx.fillRect(xx - candleWidth / 2, top, candleWidth, bodyHeight);
-  });
+  $('stats').innerHTML = `
+    <div class="stat"><span>Total de señales</span><b>${history.length}</b></div>
+    <div class="stat"><span>WIN registrados</span><b class="buy">${wins}</b></div>
+    <div class="stat"><span>LOSS registrados</span><b class="sell">${losses}</b></div>
+    <div class="stat"><span>Win rate registrado</span><b>${winRate}%</b></div>
+    <div class="stat"><span>Pendientes</span><b>${pending}</b></div>
+    <div class="stat"><span>Fuente de velas</span><b style="font-size:14px">Twelve Data</b></div>
+  `;
 }
 
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  })[char]);
-}
+$('forexBtn').addEventListener('click', () => setMode('forex'));
+$('binaryBtn').addEventListener('click', () => setMode('binary'));
+$('generateBtn').addEventListener('click', generateSignal);
 
-function setMode(newMode) {
-  mode = newMode;
-
-  $('forex').classList.toggle('active', mode === 'forex');
-  $('binary').classList.toggle('active', mode === 'binary');
-
-  $('tfbox').style.display = mode === 'forex' ? 'block' : 'none';
-  $('exbox').style.display = mode === 'binary' ? 'block' : 'none';
-
-  $('direction').textContent = 'WAIT';
-  $('direction').className = 'direction wait';
-  $('reason').textContent = 'Generate a new signal using the selected settings.';
-
-  if (selected) choose(selected);
-}
-
-$('forex').addEventListener('click', () => setMode('forex'));
-$('binary').addEventListener('click', () => setMode('binary'));
-
-$('market').addEventListener('change', event => choose(event.target.value));
-
-$('tf').addEventListener('change', () => {
-  if (selected) choose(selected);
+$('clearHistory').addEventListener('click', () => {
+  if (confirm('¿Quieres borrar todo el historial de señales?')) {
+    history = [];
+    saveHistory();
+    renderHistory();
+  }
 });
 
-$('generate').addEventListener('click', generateSignal);
-
-$('history').addEventListener('click', () => {
-  alert('Signal history is available only for the current session. Persistent history requires a database.');
-});
-
-$('ai').addEventListener('click', () => {
-  alert('Jane AI assistant: EMA helps identify trends, while RSI measures momentum. This demo does not connect to a separate AI service.');
-});
-
-$('terminalNav').addEventListener('click', () => {
-  document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
-});
-
-window.addEventListener('resize', render);
-
-connect();
+drawButtons();
+renderHistory();
 </script>
 </body>
 </html>

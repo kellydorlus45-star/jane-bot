@@ -1,0 +1,20 @@
+const ALLOWED = new Set(['1min','5min','15min','30min','45min','1h','2h','4h','5h','8h','1day','1week','1month']);
+const SYMBOL_RE = /^[A-Z]{3}\/[A-Z]{3}$/;
+function send(res,status,body){res.status(status).setHeader('Content-Type','application/json; charset=utf-8').end(JSON.stringify(body));}
+module.exports=async(req,res)=>{
+ try{
+  if(req.method!=='GET')return send(res,405,{error:'Method not allowed'});
+  const q=req.query||{},symbol=String(q.symbol||'').toUpperCase(),interval=String(q.interval||'1min'),outputsize=Math.min(5000,Math.max(30,Number(q.outputsize||5000))),key=process.env.TWELVEDATA_API_KEY;
+  if(!key)return send(res,500,{error:'TWELVEDATA_API_KEY no está configurada en Vercel.'});
+  if(!SYMBOL_RE.test(symbol))return send(res,400,{error:'Símbolo inválido.'});
+  if(!ALLOWED.has(interval))return send(res,400,{error:`Intervalo no soportado: ${interval}`});
+  const url=new URL('https://api.twelvedata.com/time_series');
+  url.searchParams.set('symbol',symbol);url.searchParams.set('interval',interval);url.searchParams.set('outputsize',String(outputsize));url.searchParams.set('timezone','UTC');url.searchParams.set('apikey',key);
+  const upstream=await fetch(url,{cache:'no-store'}),text=await upstream.text();let data;
+  try{data=JSON.parse(text)}catch{return send(res,502,{error:'La fuente de mercado devolvió una respuesta no válida.'})}
+  if(!upstream.ok||data.status==='error'||data.code)return send(res,upstream.status||502,{error:data.message||data.error||'No se pudieron obtener los datos del mercado.'});
+  if(!Array.isArray(data.values)||!data.values.length)return send(res,502,{error:'La fuente no devolvió velas.'});
+  const currentPrice=Number(data.values[0]?.close);
+  send(res,200,{symbol,interval,values:data.values,meta:data.meta||null,currentPrice:Number.isFinite(currentPrice)?currentPrice:null,sourceTime:data.values[0]?.datetime||null});
+ }catch(err){send(res,500,{error:err?.message||'Error interno del mercado.'});}
+};
